@@ -8900,6 +8900,8 @@ var ReactInjection = {
 
 module.exports = ReactInjection;
 },{"11":11,"16":16,"18":18,"25":25,"28":28,"49":49,"54":54,"75":75}],57:[function(_dereq_,module,exports){
+'use strict';
+
 /**
  * Copyright 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8909,8 +8911,6 @@ module.exports = ReactInjection;
  * of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-
-'use strict';
 
 var ReactDOMSelection = _dereq_(39);
 
@@ -8969,6 +8969,29 @@ function getElementsWithSelections(acc, win) {
   return Array.prototype.reduce.call(win.frames, getElementsWithSelections, acc);
 }
 
+function focusNodePreservingScroll(element) {
+  // Focusing a node can change the scroll position, which is undesirable
+  var ancestors = [];
+  var ancestor = element;
+  while (ancestor = ancestor.parentNode) {
+    if (ancestor.nodeType === 1) {
+      ancestors.push({
+        element: ancestor,
+        left: ancestor.scrollLeft,
+        top: ancestor.scrollTop
+      });
+    }
+  }
+
+  focusNode(element);
+
+  for (var i = 0; i < ancestors.length; i++) {
+    var info = ancestors[i];
+    info.element.scrollLeft = info.left;
+    info.element.scrollTop = info.top;
+  }
+}
+
 /**
  * @ReactInputSelection: React input selection module. Based on Selection.js,
  * but modified to be suitable for react and has a couple of bug fixes (doesn't
@@ -9003,20 +9026,18 @@ var ReactInputSelection = {
   restoreSelection: function (priorSelectionInformation) {
     priorSelectionInformation.activeElements.forEach(function (activeElement) {
       var element = activeElement.element;
-      if (!isInDocument(element) || getActiveElement(element.ownerDocument) === element) {
-        return;
+      if (isInDocument(element) && getActiveElement(element.ownerDocument) !== element) {
+        if (ReactInputSelection.hasSelectionCapabilities(element)) {
+          ReactInputSelection.setSelection(element, activeElement.selectionRange);
+          focusNodePreservingScroll(element);
+        }
       }
-      if (!ReactInputSelection.hasSelectionCapabilities(element)) {
-        return;
-      }
-      ReactInputSelection.setSelection(element, activeElement.selectionRange);
-      focusNode(element);
     });
 
     var curFocusedElement = getFocusedElement();
     var priorFocusedElement = priorSelectionInformation.focusedElement;
     if (curFocusedElement !== priorFocusedElement && isInDocument(priorFocusedElement)) {
-      focusNode(priorFocusedElement);
+      focusNodePreservingScroll(priorFocusedElement);
     }
   },
 
