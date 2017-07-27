@@ -11475,25 +11475,9 @@ var _assign = _dereq_(158);
 var CallbackQueue = _dereq_(6);
 var PooledClass = _dereq_(25);
 var ReactBrowserEventEmitter = _dereq_(26);
-var ReactInputSelection = _dereq_(62);
 var ReactInstrumentation = _dereq_(64);
 var Transaction = _dereq_(100);
 var ReactUpdateQueue = _dereq_(81);
-
-/**
- * Ensures that, when possible, the selection range (currently selected text
- * input) is not disturbed by performing the transaction.
- */
-var SELECTION_RESTORATION = {
-  /**
-   * @return {Selection} Selection information.
-   */
-  initialize: ReactInputSelection.getSelectionInformation,
-  /**
-   * @param {Selection} sel Selection information returned from `initialize`.
-   */
-  close: ReactInputSelection.restoreSelection
-};
 
 /**
  * Suppresses events (blur/focus) that could be inadvertently dispatched due to
@@ -11546,7 +11530,7 @@ var ON_DOM_READY_QUEUEING = {
  * being member methods, but with an implied ordering while being isolated from
  * each other.
  */
-var TRANSACTION_WRAPPERS = [SELECTION_RESTORATION, EVENT_SUPPRESSION, ON_DOM_READY_QUEUEING];
+var TRANSACTION_WRAPPERS = [EVENT_SUPPRESSION, ON_DOM_READY_QUEUEING];
 
 if ("development" !== 'production') {
   TRANSACTION_WRAPPERS.push({
@@ -11635,7 +11619,7 @@ _assign(ReactReconcileTransaction.prototype, Transaction, Mixin);
 PooledClass.addPoolingTo(ReactReconcileTransaction);
 
 module.exports = ReactReconcileTransaction;
-},{"100":100,"158":158,"25":25,"26":26,"6":6,"62":62,"64":64,"81":81}],75:[function(_dereq_,module,exports){
+},{"100":100,"158":158,"25":25,"26":26,"6":6,"64":64,"81":81}],75:[function(_dereq_,module,exports){
 /**
  * Copyright 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -17455,7 +17439,7 @@ module.exports = camelizeStyleName;
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  *
- *
+ * 
  */
 
 var isTextNode = _dereq_(152);
