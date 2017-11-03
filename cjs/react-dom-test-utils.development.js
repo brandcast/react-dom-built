@@ -1,4 +1,4 @@
-/** @license React v16.0.0
+/** @license React v16.1.0-beta
  * react-dom-test-utils.development.js
  *
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -15,8 +15,8 @@ if (process.env.NODE_ENV !== "production") {
 'use strict';
 
 var _assign = require('object-assign');
-var react = require('react');
-var reactDom = require('react-dom');
+var React = require('react');
+var ReactDOM = require('react-dom');
 var invariant = require('fbjs/lib/invariant');
 var warning = require('fbjs/lib/warning');
 var emptyFunction = require('fbjs/lib/emptyFunction');
@@ -29,6 +29,13 @@ var ExecutionEnvironment = require('fbjs/lib/ExecutionEnvironment');
  * LICENSE file in the root directory of this source tree.
  *
  * 
+ */
+
+/**
+ * WARNING: DO NOT manually require this module.
+ * This is a replacement for `invariant(...)` used by the error code system
+ * and will _only_ be required by the corresponding babel pass.
+ * It always throws.
  */
 
 /**
@@ -48,45 +55,25 @@ var ExecutionEnvironment = require('fbjs/lib/ExecutionEnvironment');
  * If this becomes an actual Map, that will break.
  */
 
-var ReactInstanceMap = {
-  /**
+/**
    * This API should be called `delete` but we'd have to make sure to always
    * transform these to strings for IE support. When this transform is fully
    * supported we can rename it.
    */
-  remove: function (key) {
-    key._reactInternalFiber = undefined;
-  },
 
-  get: function (key) {
-    return key._reactInternalFiber;
-  },
 
-  has: function (key) {
-    return key._reactInternalFiber !== undefined;
-  },
-
-  set: function (key, value) {
-    key._reactInternalFiber = value;
-  }
-};
-
-var ReactInstanceMap_1 = ReactInstanceMap;
-
-var ReactInternals = react.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-
-var ReactGlobalSharedState = {
-  ReactCurrentOwner: ReactInternals.ReactCurrentOwner
-};
-
-{
-  _assign(ReactGlobalSharedState, {
-    ReactDebugCurrentFrame: ReactInternals.ReactDebugCurrentFrame
-  });
+function get(key) {
+  return key._reactInternalFiber;
 }
 
-var ReactGlobalSharedState_1 = ReactGlobalSharedState;
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
+// Before we know whether it is functional or class
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -96,20 +83,15 @@ var ReactGlobalSharedState_1 = ReactGlobalSharedState;
  * 
  */
 
-function getComponentName(fiber) {
-  var type = fiber.type;
+var FunctionalComponent = 1;
+var ClassComponent = 2;
+var HostRoot = 3; // Root of a host tree. Could be nested inside another node.
+ // A subtree. Could be an entry point to a different renderer.
+var HostComponent = 5;
+var HostText = 6;
 
-  if (typeof type === 'string') {
-    return type;
-  }
-  if (typeof type === 'function') {
-    return type.displayName || type.name;
-  }
-  return null;
-}
-
-var getComponentName_1 = getComponentName;
-
+// Don't change these two values:
+var NoEffect = 0; //           0b00000000
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -119,59 +101,17 @@ var getComponentName_1 = getComponentName;
  * 
  */
 
-var ReactTypeOfWork = {
-  IndeterminateComponent: 0, // Before we know whether it is functional or class
-  FunctionalComponent: 1,
-  ClassComponent: 2,
-  HostRoot: 3, // Root of a host tree. Could be nested inside another node.
-  HostPortal: 4, // A subtree. Could be an entry point to a different renderer.
-  HostComponent: 5,
-  HostText: 6,
-  CallComponent: 7,
-  CallHandlerPhase: 8,
-  ReturnComponent: 9,
-  Fragment: 10
-};
+ //      0b00000001
 
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * 
- */
-
-var ReactTypeOfSideEffect = {
-  // Don't change these two values:
-  NoEffect: 0, //           0b00000000
-  PerformedWork: 1, //      0b00000001
-  // You can change the rest (and add more).
-  Placement: 2, //          0b00000010
-  Update: 4, //             0b00000100
-  PlacementAndUpdate: 6, // 0b00000110
-  Deletion: 8, //           0b00001000
-  ContentReset: 16, //      0b00010000
-  Callback: 32, //          0b00100000
-  Err: 64, //               0b01000000
-  Ref: 128 };
-
-var ReactCurrentOwner = ReactGlobalSharedState_1.ReactCurrentOwner;
-
-
-
-var ClassComponent$1 = ReactTypeOfWork.ClassComponent;
-var HostComponent$1 = ReactTypeOfWork.HostComponent;
-var HostRoot = ReactTypeOfWork.HostRoot;
-var HostPortal = ReactTypeOfWork.HostPortal;
-var HostText$1 = ReactTypeOfWork.HostText;
-
-var NoEffect = ReactTypeOfSideEffect.NoEffect;
-var Placement = ReactTypeOfSideEffect.Placement;
-
-{
-  var warning$1 = warning;
-}
+// You can change the rest (and add more).
+var Placement = 2; //          0b00000010
+ //             0b00000100
+ // 0b00000110
+ //           0b00001000
+ //      0b00010000
+ //          0b00100000
+ //               0b01000000
+ //              0b10000000
 
 var MOUNTING = 1;
 var MOUNTED = 2;
@@ -205,27 +145,10 @@ function isFiberMountedImpl(fiber) {
   // that has been unmounted.
   return UNMOUNTED;
 }
-var isFiberMounted = function (fiber) {
-  return isFiberMountedImpl(fiber) === MOUNTED;
-};
 
-var isMounted = function (component) {
-  {
-    var owner = ReactCurrentOwner.current;
-    if (owner !== null && owner.tag === ClassComponent$1) {
-      var ownerFiber = owner;
-      var instance = ownerFiber.stateNode;
-      warning$1(instance._warnedAboutRefsInRender, '%s is accessing isMounted inside its render() function. ' + 'render() should be a pure function of props and state. It should ' + 'never access something that requires stale data from the previous ' + 'render, such as refs. Move this logic to componentDidMount and ' + 'componentDidUpdate instead.', getComponentName_1(ownerFiber) || 'A component');
-      instance._warnedAboutRefsInRender = true;
-    }
-  }
 
-  var fiber = ReactInstanceMap_1.get(component);
-  if (!fiber) {
-    return false;
-  }
-  return isFiberMountedImpl(fiber) === MOUNTED;
-};
+
+
 
 function assertIsMounted(fiber) {
   !(isFiberMountedImpl(fiber) === MOUNTED) ? invariant(false, 'Unable to find node on an unmounted component.') : void 0;
@@ -342,89 +265,19 @@ function findCurrentFiberUsingSlowPath(fiber) {
   // Otherwise B has to be current branch.
   return alternate;
 }
-var findCurrentFiberUsingSlowPath_1 = findCurrentFiberUsingSlowPath;
 
-var findCurrentHostFiber = function (parent) {
-  var currentParent = findCurrentFiberUsingSlowPath(parent);
-  if (!currentParent) {
-    return null;
-  }
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
-  // Next we'll drill down this component to find the first HostComponent/Text.
-  var node = currentParent;
-  while (true) {
-    if (node.tag === HostComponent$1 || node.tag === HostText$1) {
-      return node;
-    } else if (node.child) {
-      node.child['return'] = node;
-      node = node.child;
-      continue;
-    }
-    if (node === currentParent) {
-      return null;
-    }
-    while (!node.sibling) {
-      if (!node['return'] || node['return'] === currentParent) {
-        return null;
-      }
-      node = node['return'];
-    }
-    node.sibling['return'] = node['return'];
-    node = node.sibling;
-  }
-  // Flow needs the return null here, but ESLint complains about it.
-  // eslint-disable-next-line no-unreachable
-  return null;
-};
-
-var findCurrentHostFiberWithNoPortals = function (parent) {
-  var currentParent = findCurrentFiberUsingSlowPath(parent);
-  if (!currentParent) {
-    return null;
-  }
-
-  // Next we'll drill down this component to find the first HostComponent/Text.
-  var node = currentParent;
-  while (true) {
-    if (node.tag === HostComponent$1 || node.tag === HostText$1) {
-      return node;
-    } else if (node.child && node.tag !== HostPortal) {
-      node.child['return'] = node;
-      node = node.child;
-      continue;
-    }
-    if (node === currentParent) {
-      return null;
-    }
-    while (!node.sibling) {
-      if (!node['return'] || node['return'] === currentParent) {
-        return null;
-      }
-      node = node['return'];
-    }
-    node.sibling['return'] = node['return'];
-    node = node.sibling;
-  }
-  // Flow needs the return null here, but ESLint complains about it.
-  // eslint-disable-next-line no-unreachable
-  return null;
-};
-
-var ReactFiberTreeReflection = {
-	isFiberMounted: isFiberMounted,
-	isMounted: isMounted,
-	findCurrentFiberUsingSlowPath: findCurrentFiberUsingSlowPath_1,
-	findCurrentHostFiber: findCurrentHostFiber,
-	findCurrentHostFiberWithNoPortals: findCurrentHostFiberWithNoPortals
-};
+/* eslint valid-typeof: 0 */
 
 var didWarnForAddedNewProperty = false;
 var isProxySupported = typeof Proxy === 'function';
 var EVENT_POOL_SIZE = 10;
-
-{
-  var warning$2 = warning;
-}
 
 var shouldBeReleasedProperties = ['dispatchConfig', '_targetInst', 'nativeEvent', 'isDefaultPrevented', 'isPropagationStopped', '_dispatchListeners', '_dispatchInstances'];
 
@@ -619,7 +472,7 @@ SyntheticEvent.augmentClass = function (Class, Interface) {
         return new Proxy(constructor.apply(that, args), {
           set: function (target, prop, value) {
             if (prop !== 'isPersistent' && !target.constructor.Interface.hasOwnProperty(prop) && shouldBeReleasedProperties.indexOf(prop) === -1) {
-              warning$2(didWarnForAddedNewProperty || target.isPersistent(), "This synthetic event is reused for performance reasons. If you're " + "seeing this, you're adding a new property in the synthetic event object. " + 'The property is never released. See ' + 'https://fb.me/react-event-pooling for more information.');
+              warning(didWarnForAddedNewProperty || target.isPersistent(), "This synthetic event is reused for performance reasons. If you're " + "seeing this, you're adding a new property in the synthetic event object. " + 'The property is never released. See ' + 'https://fb.me/react-event-pooling for more information.');
               didWarnForAddedNewProperty = true;
             }
             target[prop] = value;
@@ -633,8 +486,6 @@ SyntheticEvent.augmentClass = function (Class, Interface) {
 }
 
 addEventPoolingTo(SyntheticEvent);
-
-var SyntheticEvent_1 = SyntheticEvent;
 
 /**
   * Helper to nullify syntheticEvent instance properties when destructing
@@ -666,7 +517,7 @@ function getPooledWarningPropertyDefinition(propName, getVal) {
 
   function warn(action, result) {
     var warningCondition = false;
-    warning$2(warningCondition, "This synthetic event is reused for performance reasons. If you're seeing this, " + "you're %s `%s` on a released/nullified synthetic event. %s. " + 'If you must keep the original synthetic event around, use event.persist(). ' + 'See https://fb.me/react-event-pooling for more information.', action, propName, result);
+    warning(warningCondition, "This synthetic event is reused for performance reasons. If you're seeing this, " + "you're %s `%s` on a released/nullified synthetic event. %s. " + 'If you must keep the original synthetic event around, use event.persist(). ' + 'See https://fb.me/react-event-pooling for more information.', action, propName, result);
   }
 }
 
@@ -694,6 +545,15 @@ function addEventPoolingTo(EventConstructor) {
   EventConstructor.getPooled = getPooledEvent;
   EventConstructor.release = releasePooledEvent;
 }
+
+var SyntheticEvent$1 = SyntheticEvent;
+
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 /**
  * Generate a mapping of standard vendor prefixes using the defined style property and event name.
@@ -780,7 +640,12 @@ function getVendorPrefixedEventName(eventName) {
   return '';
 }
 
-var getVendorPrefixedEventName_1 = getVendorPrefixedEventName;
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 /**
  * Types of raw signals from the browser caught at the top level.
@@ -791,9 +656,9 @@ var getVendorPrefixedEventName_1 = getVendorPrefixedEventName;
  */
 var topLevelTypes$1 = {
   topAbort: 'abort',
-  topAnimationEnd: getVendorPrefixedEventName_1('animationend') || 'animationend',
-  topAnimationIteration: getVendorPrefixedEventName_1('animationiteration') || 'animationiteration',
-  topAnimationStart: getVendorPrefixedEventName_1('animationstart') || 'animationstart',
+  topAnimationEnd: getVendorPrefixedEventName('animationend') || 'animationend',
+  topAnimationIteration: getVendorPrefixedEventName('animationiteration') || 'animationiteration',
+  topAnimationStart: getVendorPrefixedEventName('animationstart') || 'animationstart',
   topBlur: 'blur',
   topCancel: 'cancel',
   topCanPlay: 'canplay',
@@ -854,7 +719,7 @@ var topLevelTypes$1 = {
   topTouchEnd: 'touchend',
   topTouchMove: 'touchmove',
   topTouchStart: 'touchstart',
-  topTransitionEnd: getVendorPrefixedEventName_1('transitionend') || 'transitionend',
+  topTransitionEnd: getVendorPrefixedEventName('transitionend') || 'transitionend',
   topVolumeChange: 'volumechange',
   topWaiting: 'waiting',
   topWheel: 'wheel'
@@ -864,10 +729,15 @@ var BrowserEventConstants = {
   topLevelTypes: topLevelTypes$1
 };
 
-var BrowserEventConstants_1 = BrowserEventConstants;
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
-var findDOMNode = reactDom.findDOMNode;
-var _ReactDOM$__SECRET_IN = reactDom.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+var findDOMNode = ReactDOM.findDOMNode;
+var _ReactDOM$__SECRET_IN = ReactDOM.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 var EventPluginHub = _ReactDOM$__SECRET_IN.EventPluginHub;
 var EventPluginRegistry = _ReactDOM$__SECRET_IN.EventPluginRegistry;
 var EventPropagators = _ReactDOM$__SECRET_IN.EventPropagators;
@@ -876,12 +746,7 @@ var ReactDOMComponentTree = _ReactDOM$__SECRET_IN.ReactDOMComponentTree;
 var ReactDOMEventListener = _ReactDOM$__SECRET_IN.ReactDOMEventListener;
 
 
-var topLevelTypes = BrowserEventConstants_1.topLevelTypes;
-var ClassComponent = ReactTypeOfWork.ClassComponent;
-var FunctionalComponent = ReactTypeOfWork.FunctionalComponent;
-var HostComponent = ReactTypeOfWork.HostComponent;
-var HostText = ReactTypeOfWork.HostText;
-
+var topLevelTypes = BrowserEventConstants.topLevelTypes;
 
 function Event(suffix) {}
 
@@ -893,7 +758,7 @@ function findAllInRenderedFiberTreeInternal(fiber, test) {
   if (!fiber) {
     return [];
   }
-  var currentParent = ReactFiberTreeReflection.findCurrentFiberUsingSlowPath(fiber);
+  var currentParent = findCurrentFiberUsingSlowPath(fiber);
   if (!currentParent) {
     return [];
   }
@@ -942,15 +807,15 @@ var ReactTestUtils = {
     // clean up, so we're going to stop honoring the name of this method
     // (and probably rename it eventually) if no problems arise.
     // document.documentElement.appendChild(div);
-    return reactDom.render(element, div);
+    return ReactDOM.render(element, div);
   },
 
   isElement: function (element) {
-    return react.isValidElement(element);
+    return React.isValidElement(element);
   },
 
   isElementOfType: function (inst, convenienceConstructor) {
-    return react.isValidElement(inst) && inst.type === convenienceConstructor;
+    return React.isValidElement(inst) && inst.type === convenienceConstructor;
   },
 
   isDOMComponent: function (inst) {
@@ -958,7 +823,7 @@ var ReactTestUtils = {
   },
 
   isDOMComponentElement: function (inst) {
-    return !!(inst && react.isValidElement(inst) && !!inst.tagName);
+    return !!(inst && React.isValidElement(inst) && !!inst.tagName);
   },
 
   isCompositeComponent: function (inst) {
@@ -974,7 +839,7 @@ var ReactTestUtils = {
     if (!ReactTestUtils.isCompositeComponent(inst)) {
       return false;
     }
-    var internalInstance = ReactInstanceMap_1.get(inst);
+    var internalInstance = get(inst);
     var constructor = internalInstance.type;
     return constructor === type;
   },
@@ -984,7 +849,7 @@ var ReactTestUtils = {
       return [];
     }
     !ReactTestUtils.isCompositeComponent(inst) ? invariant(false, 'findAllInRenderedTree(...): instance must be a composite component') : void 0;
-    var internalInstance = ReactInstanceMap_1.get(inst);
+    var internalInstance = get(inst);
     return findAllInRenderedFiberTreeInternal(internalInstance, test);
   },
 
@@ -1095,7 +960,7 @@ var ReactTestUtils = {
     mockTagName = mockTagName || module.mockTagName || 'div';
 
     module.prototype.render.mockImplementation(function () {
-      return react.createElement(mockTagName, null, this.props.children);
+      return React.createElement(mockTagName, null, this.props.children);
     });
 
     return this;
@@ -1144,7 +1009,7 @@ var ReactTestUtils = {
  */
 function makeSimulator(eventType) {
   return function (domNode, eventData) {
-    !!react.isValidElement(domNode) ? invariant(false, 'TestUtils.Simulate expected a DOM node as the first argument but received a React element. Pass the DOM node you wish to simulate the event on instead. Note that TestUtils.Simulate will not work if you are using shallow rendering.') : void 0;
+    !!React.isValidElement(domNode) ? invariant(false, 'TestUtils.Simulate expected a DOM node as the first argument but received a React element. Pass the DOM node you wish to simulate the event on instead. Note that TestUtils.Simulate will not work if you are using shallow rendering.') : void 0;
     !!ReactTestUtils.isCompositeComponent(domNode) ? invariant(false, 'TestUtils.Simulate expected a DOM node as the first argument but received a component instance. Pass the DOM node you wish to simulate the event on instead.') : void 0;
 
     var dispatchConfig = EventPluginRegistry.eventNameDispatchConfigs[eventType];
@@ -1156,7 +1021,7 @@ function makeSimulator(eventType) {
     // We don't use SyntheticEvent.getPooled in order to not have to worry about
     // properly destroying any properties assigned from `eventData` upon release
     var targetInst = ReactDOMComponentTree.getInstanceFromNode(domNode);
-    var event = new SyntheticEvent_1(dispatchConfig, targetInst, fakeNativeEvent, domNode);
+    var event = new SyntheticEvent$1(dispatchConfig, targetInst, fakeNativeEvent, domNode);
 
     // Since we aren't using pooling, always persist the event. This will make
     // sure it's marked and won't warn when setting additional properties.
@@ -1169,7 +1034,7 @@ function makeSimulator(eventType) {
       EventPropagators.accumulateDirectDispatches(event);
     }
 
-    reactDom.unstable_batchedUpdates(function () {
+    ReactDOM.unstable_batchedUpdates(function () {
       // Normally extractEvent enqueues a state restore, but we'll just always
       // do that since we we're by-passing it here.
       ReactControlledComponent.enqueueStateRestore(domNode);
@@ -1246,9 +1111,30 @@ Object.keys(topLevelTypes).forEach(function (eventType) {
   ReactTestUtils.SimulateNative[convenienceName] = makeNativeSimulator(eventType);
 });
 
-var ReactTestUtils_1 = ReactTestUtils;
 
-var testUtils = ReactTestUtils_1;
+
+var ReactTestUtils$2 = Object.freeze({
+	default: ReactTestUtils
+});
+
+var ReactTestUtils$3 = ( ReactTestUtils$2 && ReactTestUtils ) || ReactTestUtils$2;
+
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * 
+ */
+
+
+
+
+
+// TODO: decide on the top-level export form.
+// This is hacky but makes it work with both Rollup and Jest.
+var testUtils = ReactTestUtils$3['default'] ? ReactTestUtils$3['default'] : ReactTestUtils$3;
 
 module.exports = testUtils;
 

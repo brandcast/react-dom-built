@@ -1,4 +1,4 @@
-/** @license React v16.0.0
+/** @license React v16.1.0-beta
  * react-dom-unstable-native-dependencies.development.js
  *
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -14,11 +14,27 @@ if (process.env.NODE_ENV !== "production") {
 
 'use strict';
 
+var ReactDOM = require('react-dom');
 var invariant = require('fbjs/lib/invariant');
-var require$$0 = require('fbjs/lib/warning');
-var objectAssign$1 = require('object-assign');
+var warning = require('fbjs/lib/warning');
+var _assign = require('object-assign');
 var emptyFunction = require('fbjs/lib/emptyFunction');
-var reactDom = require('react-dom');
+
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * 
+ */
+
+/**
+ * WARNING: DO NOT manually require this module.
+ * This is a replacement for `invariant(...)` used by the error code system
+ * and will _only_ be required by the corresponding babel pass.
+ * It always throws.
+ */
 
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -42,7 +58,6 @@ var ReactErrorUtils = {
     injectErrorUtils: function (injectedErrorUtils) {
       !(typeof injectedErrorUtils.invokeGuardedCallback === 'function') ? invariant(false, 'Injected invokeGuardedCallback() must be a function.') : void 0;
       invokeGuardedCallback = injectedErrorUtils.invokeGuardedCallback;
-      wrapEventListener = injectedErrorUtils.wrapEventListener;
     }
   },
 
@@ -61,13 +76,6 @@ var ReactErrorUtils = {
    */
   invokeGuardedCallback: function (name, func, context, a, b, c, d, e, f) {
     invokeGuardedCallback.apply(ReactErrorUtils, arguments);
-  },
-
-  /**
-   * Wrap a callback in whatever logic it needs. Used in FB to polyfill Promises.
-   */
-  wrapEventListener: function (name, callback) {
-    return wrapEventListener(name, callback);
   },
 
   /**
@@ -113,10 +121,6 @@ var ReactErrorUtils = {
       invariant(false, 'clearCaughtError was called but no error was captured. This error is likely caused by a bug in React. Please file an issue.');
     }
   }
-};
-
-var wrapEventListener = function (name, callback) {
-  return callback;
 };
 
 var invokeGuardedCallback = function (name, func, context, a, b, c, d, e, f) {
@@ -247,11 +251,12 @@ var rethrowCaughtError = function () {
   }
 };
 
-var ReactErrorUtils_1 = ReactErrorUtils;
-
-{
-  var warning = require$$0;
-}
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 /**
  * Injected dependencies:
@@ -308,7 +313,7 @@ var validateEventDispatches;
 function executeDispatch(event, simulated, listener, inst) {
   var type = event.type || 'unknown-event';
   event.currentTarget = EventPluginUtils.getNodeFromInstance(inst);
-  ReactErrorUtils_1.invokeGuardedCallbackAndCatchFirstError(type, listener, undefined, event);
+  ReactErrorUtils.invokeGuardedCallbackAndCatchFirstError(type, listener, undefined, event);
   event.currentTarget = null;
 }
 
@@ -435,8 +440,7 @@ var EventPluginUtils = {
   injection: injection
 };
 
-var EventPluginUtils_1 = EventPluginUtils;
-
+// Before we know whether it is functional or class
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -446,21 +450,18 @@ var EventPluginUtils_1 = EventPluginUtils;
  * 
  */
 
-var ReactTypeOfWork = {
-  IndeterminateComponent: 0, // Before we know whether it is functional or class
-  FunctionalComponent: 1,
-  ClassComponent: 2,
-  HostRoot: 3, // Root of a host tree. Could be nested inside another node.
-  HostPortal: 4, // A subtree. Could be an entry point to a different renderer.
-  HostComponent: 5,
-  HostText: 6,
-  CallComponent: 7,
-  CallHandlerPhase: 8,
-  ReturnComponent: 9,
-  Fragment: 10
-};
 
-var HostComponent = ReactTypeOfWork.HostComponent;
+
+ // Root of a host tree. Could be nested inside another node.
+ // A subtree. Could be an entry point to a different renderer.
+var HostComponent = 5;
+
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 function getParent(inst) {
   do {
@@ -600,13 +601,14 @@ function traverseEnterLeave(from, to, fn, argFrom, argTo) {
   }
 }
 
-var ReactTreeTraversal = {
-  isAncestor: isAncestor,
-  getLowestCommonAncestor: getLowestCommonAncestor,
-  getParentInstance: getParentInstance,
-  traverseTwoPhase: traverseTwoPhase,
-  traverseEnterLeave: traverseEnterLeave
-};
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * 
+ */
 
 /**
  * Injectable ordering of event plugins.
@@ -774,7 +776,14 @@ var EventPluginRegistry = {
   }
 };
 
-var EventPluginRegistry_1 = EventPluginRegistry;
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * 
+ */
 
 /**
  * Accumulates items that must not be null or undefined into the first one. This
@@ -815,8 +824,6 @@ function accumulateInto(current, next) {
   return [current, next];
 }
 
-var accumulateInto_1 = accumulateInto;
-
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -835,7 +842,6 @@ var accumulateInto_1 = accumulateInto;
  * @param {function} cb Callback invoked with each element or a collection.
  * @param {?} [scope] Scope used as `this` in a callback.
  */
-
 function forEachAccumulated(arr, cb, scope) {
   if (Array.isArray(arr)) {
     arr.forEach(cb, scope);
@@ -844,7 +850,12 @@ function forEachAccumulated(arr, cb, scope) {
   }
 }
 
-var forEachAccumulated_1 = forEachAccumulated;
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 /**
  * Internal queue of events that have accumulated their dispatches and are
@@ -861,7 +872,7 @@ var eventQueue = null;
  */
 var executeDispatchesAndRelease = function (event, simulated) {
   if (event) {
-    EventPluginUtils_1.executeDispatchesInOrder(event, simulated);
+    EventPluginUtils.executeDispatchesInOrder(event, simulated);
 
     if (!event.isPersistent()) {
       event.constructor.release(event);
@@ -928,12 +939,12 @@ var EventPluginHub = {
      * @param {array} InjectedEventPluginOrder
      * @public
      */
-    injectEventPluginOrder: EventPluginRegistry_1.injectEventPluginOrder,
+    injectEventPluginOrder: EventPluginRegistry.injectEventPluginOrder,
 
     /**
      * @param {object} injectedNamesToPlugins Map from names to plugin modules.
      */
-    injectEventPluginsByName: EventPluginRegistry_1.injectEventPluginsByName
+    injectEventPluginsByName: EventPluginRegistry.injectEventPluginsByName
   },
 
   /**
@@ -951,7 +962,7 @@ var EventPluginHub = {
       // Work in progress (ex: onload events in incremental mode).
       return null;
     }
-    var props = EventPluginUtils_1.getFiberCurrentPropsFromNode(stateNode);
+    var props = EventPluginUtils.getFiberCurrentPropsFromNode(stateNode);
     if (!props) {
       // Work in progress.
       return null;
@@ -973,14 +984,14 @@ var EventPluginHub = {
    */
   extractEvents: function (topLevelType, targetInst, nativeEvent, nativeEventTarget) {
     var events;
-    var plugins = EventPluginRegistry_1.plugins;
+    var plugins = EventPluginRegistry.plugins;
     for (var i = 0; i < plugins.length; i++) {
       // Not every plugin in the ordering may be loaded at runtime.
       var possiblePlugin = plugins[i];
       if (possiblePlugin) {
         var extractedEvents = possiblePlugin.extractEvents(topLevelType, targetInst, nativeEvent, nativeEventTarget);
         if (extractedEvents) {
-          events = accumulateInto_1(events, extractedEvents);
+          events = accumulateInto(events, extractedEvents);
         }
       }
     }
@@ -996,7 +1007,7 @@ var EventPluginHub = {
    */
   enqueueEvents: function (events) {
     if (events) {
-      eventQueue = accumulateInto_1(eventQueue, events);
+      eventQueue = accumulateInto(eventQueue, events);
     }
   },
 
@@ -1011,23 +1022,24 @@ var EventPluginHub = {
     var processingEventQueue = eventQueue;
     eventQueue = null;
     if (simulated) {
-      forEachAccumulated_1(processingEventQueue, executeDispatchesAndReleaseSimulated);
+      forEachAccumulated(processingEventQueue, executeDispatchesAndReleaseSimulated);
     } else {
-      forEachAccumulated_1(processingEventQueue, executeDispatchesAndReleaseTopLevel);
+      forEachAccumulated(processingEventQueue, executeDispatchesAndReleaseTopLevel);
     }
     !!eventQueue ? invariant(false, 'processEventQueue(): Additional events were enqueued while processing an event queue. Support for this has not yet been implemented.') : void 0;
     // This would be a good time to rethrow if any of the event handlers threw.
-    ReactErrorUtils_1.rethrowCaughtError();
+    ReactErrorUtils.rethrowCaughtError();
   }
 };
 
-var EventPluginHub_1 = EventPluginHub;
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
-var getListener = EventPluginHub_1.getListener;
-
-{
-  var warning$1 = require$$0;
-}
+var getListener = EventPluginHub.getListener;
 
 /**
  * Some event types have a notion of different registration names for different
@@ -1046,12 +1058,12 @@ function listenerAtPhase(inst, event, propagationPhase) {
  */
 function accumulateDirectionalDispatches(inst, phase, event) {
   {
-    warning$1(inst, 'Dispatching inst must not be null');
+    warning(inst, 'Dispatching inst must not be null');
   }
   var listener = listenerAtPhase(inst, event, phase);
   if (listener) {
-    event._dispatchListeners = accumulateInto_1(event._dispatchListeners, listener);
-    event._dispatchInstances = accumulateInto_1(event._dispatchInstances, inst);
+    event._dispatchListeners = accumulateInto(event._dispatchListeners, listener);
+    event._dispatchInstances = accumulateInto(event._dispatchInstances, inst);
   }
 }
 
@@ -1064,7 +1076,7 @@ function accumulateDirectionalDispatches(inst, phase, event) {
  */
 function accumulateTwoPhaseDispatchesSingle(event) {
   if (event && event.dispatchConfig.phasedRegistrationNames) {
-    ReactTreeTraversal.traverseTwoPhase(event._targetInst, accumulateDirectionalDispatches, event);
+    traverseTwoPhase(event._targetInst, accumulateDirectionalDispatches, event);
   }
 }
 
@@ -1074,8 +1086,8 @@ function accumulateTwoPhaseDispatchesSingle(event) {
 function accumulateTwoPhaseDispatchesSingleSkipTarget(event) {
   if (event && event.dispatchConfig.phasedRegistrationNames) {
     var targetInst = event._targetInst;
-    var parentInst = targetInst ? ReactTreeTraversal.getParentInstance(targetInst) : null;
-    ReactTreeTraversal.traverseTwoPhase(parentInst, accumulateDirectionalDispatches, event);
+    var parentInst = targetInst ? getParentInstance(targetInst) : null;
+    traverseTwoPhase(parentInst, accumulateDirectionalDispatches, event);
   }
 }
 
@@ -1089,8 +1101,8 @@ function accumulateDispatches(inst, ignoredDirection, event) {
     var registrationName = event.dispatchConfig.registrationName;
     var listener = getListener(inst, registrationName);
     if (listener) {
-      event._dispatchListeners = accumulateInto_1(event._dispatchListeners, listener);
-      event._dispatchInstances = accumulateInto_1(event._dispatchInstances, inst);
+      event._dispatchListeners = accumulateInto(event._dispatchListeners, listener);
+      event._dispatchInstances = accumulateInto(event._dispatchInstances, inst);
     }
   }
 }
@@ -1107,19 +1119,19 @@ function accumulateDirectDispatchesSingle(event) {
 }
 
 function accumulateTwoPhaseDispatches(events) {
-  forEachAccumulated_1(events, accumulateTwoPhaseDispatchesSingle);
+  forEachAccumulated(events, accumulateTwoPhaseDispatchesSingle);
 }
 
 function accumulateTwoPhaseDispatchesSkipTarget(events) {
-  forEachAccumulated_1(events, accumulateTwoPhaseDispatchesSingleSkipTarget);
+  forEachAccumulated(events, accumulateTwoPhaseDispatchesSingleSkipTarget);
 }
 
 function accumulateEnterLeaveDispatches(leave, enter, from, to) {
-  ReactTreeTraversal.traverseEnterLeave(from, to, accumulateDispatches, leave, enter);
+  traverseEnterLeave(from, to, accumulateDispatches, leave, enter);
 }
 
 function accumulateDirectDispatches(events) {
-  forEachAccumulated_1(events, accumulateDirectDispatchesSingle);
+  forEachAccumulated(events, accumulateDirectDispatchesSingle);
 }
 
 /**
@@ -1140,15 +1152,18 @@ var EventPropagators = {
   accumulateEnterLeaveDispatches: accumulateEnterLeaveDispatches
 };
 
-var EventPropagators_1 = EventPropagators;
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/* eslint valid-typeof: 0 */
 
 var didWarnForAddedNewProperty = false;
 var isProxySupported = typeof Proxy === 'function';
 var EVENT_POOL_SIZE = 10;
-
-{
-  var warning$2 = require$$0;
-}
 
 var shouldBeReleasedProperties = ['dispatchConfig', '_targetInst', 'nativeEvent', 'isDefaultPrevented', 'isPropagationStopped', '_dispatchListeners', '_dispatchInstances'];
 
@@ -1231,7 +1246,7 @@ function SyntheticEvent(dispatchConfig, targetInst, nativeEvent, nativeEventTarg
   return this;
 }
 
-objectAssign$1(SyntheticEvent.prototype, {
+_assign(SyntheticEvent.prototype, {
   preventDefault: function () {
     this.defaultPrevented = true;
     var event = this.nativeEvent;
@@ -1319,11 +1334,11 @@ SyntheticEvent.augmentClass = function (Class, Interface) {
   E.prototype = Super.prototype;
   var prototype = new E();
 
-  objectAssign$1(prototype, Class.prototype);
+  _assign(prototype, Class.prototype);
   Class.prototype = prototype;
   Class.prototype.constructor = Class;
 
-  Class.Interface = objectAssign$1({}, Super.Interface, Interface);
+  Class.Interface = _assign({}, Super.Interface, Interface);
   Class.augmentClass = Super.augmentClass;
   addEventPoolingTo(Class);
 };
@@ -1343,7 +1358,7 @@ SyntheticEvent.augmentClass = function (Class, Interface) {
         return new Proxy(constructor.apply(that, args), {
           set: function (target, prop, value) {
             if (prop !== 'isPersistent' && !target.constructor.Interface.hasOwnProperty(prop) && shouldBeReleasedProperties.indexOf(prop) === -1) {
-              warning$2(didWarnForAddedNewProperty || target.isPersistent(), "This synthetic event is reused for performance reasons. If you're " + "seeing this, you're adding a new property in the synthetic event object. " + 'The property is never released. See ' + 'https://fb.me/react-event-pooling for more information.');
+              warning(didWarnForAddedNewProperty || target.isPersistent(), "This synthetic event is reused for performance reasons. If you're " + "seeing this, you're adding a new property in the synthetic event object. " + 'The property is never released. See ' + 'https://fb.me/react-event-pooling for more information.');
               didWarnForAddedNewProperty = true;
             }
             target[prop] = value;
@@ -1357,8 +1372,6 @@ SyntheticEvent.augmentClass = function (Class, Interface) {
 }
 
 addEventPoolingTo(SyntheticEvent);
-
-var SyntheticEvent_1 = SyntheticEvent;
 
 /**
   * Helper to nullify syntheticEvent instance properties when destructing
@@ -1390,7 +1403,7 @@ function getPooledWarningPropertyDefinition(propName, getVal) {
 
   function warn(action, result) {
     var warningCondition = false;
-    warning$2(warningCondition, "This synthetic event is reused for performance reasons. If you're seeing this, " + "you're %s `%s` on a released/nullified synthetic event. %s. " + 'If you must keep the original synthetic event around, use event.persist(). ' + 'See https://fb.me/react-event-pooling for more information.', action, propName, result);
+    warning(warningCondition, "This synthetic event is reused for performance reasons. If you're seeing this, " + "you're %s `%s` on a released/nullified synthetic event. %s. " + 'If you must keep the original synthetic event around, use event.persist(). ' + 'See https://fb.me/react-event-pooling for more information.', action, propName, result);
   }
 }
 
@@ -1419,6 +1432,15 @@ function addEventPoolingTo(EventConstructor) {
   EventConstructor.release = releasePooledEvent;
 }
 
+var SyntheticEvent$1 = SyntheticEvent;
+
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 /**
  * `touchHistory` isn't actually on the native event, but putting it in the
  * interface will ensure that it is cleaned up when pooled/destroyed. The
@@ -1437,28 +1459,29 @@ var ResponderEventInterface = {
  * @extends {SyntheticEvent}
  */
 function ResponderSyntheticEvent(dispatchConfig, dispatchMarker, nativeEvent, nativeEventTarget) {
-  return SyntheticEvent_1.call(this, dispatchConfig, dispatchMarker, nativeEvent, nativeEventTarget);
+  return SyntheticEvent$1.call(this, dispatchConfig, dispatchMarker, nativeEvent, nativeEventTarget);
 }
 
-SyntheticEvent_1.augmentClass(ResponderSyntheticEvent, ResponderEventInterface);
+SyntheticEvent$1.augmentClass(ResponderSyntheticEvent, ResponderEventInterface);
 
-var ResponderSyntheticEvent_1 = ResponderSyntheticEvent;
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * 
+ */
 
-var isEndish$2 = EventPluginUtils_1.isEndish;
-var isMoveish$2 = EventPluginUtils_1.isMoveish;
-var isStartish$2 = EventPluginUtils_1.isStartish;
-
-
-{
-  var warning$3 = require$$0;
-}
+var isEndish$2 = EventPluginUtils.isEndish;
+var isMoveish$2 = EventPluginUtils.isMoveish;
+var isStartish$2 = EventPluginUtils.isStartish;
 
 /**
  * Tracks the position and time of each active touch by `touch.identifier`. We
  * should typically only see IDs in the range of 1-20 because IDs get recycled
  * when touches end and start again.
  */
-
 
 var MAX_TOUCH_BANK = 20;
 var touchBank = [];
@@ -1516,7 +1539,7 @@ function getTouchIdentifier(_ref) {
 
   !(identifier != null) ? invariant(false, 'Touch object is missing identifier.') : void 0;
   {
-    warning$3(identifier <= MAX_TOUCH_BANK, 'Touch identifier %s is greater than maximum supported %s which causes ' + 'performance issues backfilling array locations for all of the indices.', identifier, MAX_TOUCH_BANK);
+    warning(identifier <= MAX_TOUCH_BANK, 'Touch identifier %s is greater than maximum supported %s which causes ' + 'performance issues backfilling array locations for all of the indices.', identifier, MAX_TOUCH_BANK);
   }
   return identifier;
 }
@@ -1604,7 +1627,7 @@ var ResponderTouchHistoryStore = {
         }
         {
           var activeRecord = touchBank[touchHistory.indexOfSingleActiveTouch];
-          warning$3(activeRecord != null && activeRecord.touchActive, 'Cannot find single active touch.');
+          warning(activeRecord != null && activeRecord.touchActive, 'Cannot find single active touch.');
         }
       }
     }
@@ -1614,7 +1637,14 @@ var ResponderTouchHistoryStore = {
   touchHistory: touchHistory
 };
 
-var ResponderTouchHistoryStore_1 = ResponderTouchHistoryStore;
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * 
+ */
 
 /**
  * Accumulates items that must not be null or undefined.
@@ -1643,14 +1673,19 @@ function accumulate(current, next) {
   return [current, next];
 }
 
-var accumulate_1 = accumulate;
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
-var isStartish$1 = EventPluginUtils_1.isStartish;
-var isMoveish$1 = EventPluginUtils_1.isMoveish;
-var isEndish$1 = EventPluginUtils_1.isEndish;
-var executeDirectDispatch$1 = EventPluginUtils_1.executeDirectDispatch;
-var hasDispatches$1 = EventPluginUtils_1.hasDispatches;
-var executeDispatchesInOrderStopAtTrue$1 = EventPluginUtils_1.executeDispatchesInOrderStopAtTrue;
+var isStartish$1 = EventPluginUtils.isStartish;
+var isMoveish$1 = EventPluginUtils.isMoveish;
+var isEndish$1 = EventPluginUtils.isEndish;
+var executeDirectDispatch$1 = EventPluginUtils.executeDirectDispatch;
+var hasDispatches$1 = EventPluginUtils.hasDispatches;
+var executeDispatchesInOrderStopAtTrue$1 = EventPluginUtils.executeDispatchesInOrderStopAtTrue;
 
 /**
  * Instance of element that should respond to touch/move types of interactions,
@@ -1939,19 +1974,19 @@ function setResponderAndExtractTransfer(topLevelType, targetInst, nativeEvent, n
   var shouldSetEventType = isStartish$1(topLevelType) ? eventTypes.startShouldSetResponder : isMoveish$1(topLevelType) ? eventTypes.moveShouldSetResponder : topLevelType === 'topSelectionChange' ? eventTypes.selectionChangeShouldSetResponder : eventTypes.scrollShouldSetResponder;
 
   // TODO: stop one short of the current responder.
-  var bubbleShouldSetFrom = !responderInst ? targetInst : ReactTreeTraversal.getLowestCommonAncestor(responderInst, targetInst);
+  var bubbleShouldSetFrom = !responderInst ? targetInst : getLowestCommonAncestor(responderInst, targetInst);
 
   // When capturing/bubbling the "shouldSet" event, we want to skip the target
   // (deepest ID) if it happens to be the current responder. The reasoning:
   // It's strange to get an `onMoveShouldSetResponder` when you're *already*
   // the responder.
   var skipOverBubbleShouldSetFrom = bubbleShouldSetFrom === responderInst;
-  var shouldSetEvent = ResponderSyntheticEvent_1.getPooled(shouldSetEventType, bubbleShouldSetFrom, nativeEvent, nativeEventTarget);
-  shouldSetEvent.touchHistory = ResponderTouchHistoryStore_1.touchHistory;
+  var shouldSetEvent = ResponderSyntheticEvent.getPooled(shouldSetEventType, bubbleShouldSetFrom, nativeEvent, nativeEventTarget);
+  shouldSetEvent.touchHistory = ResponderTouchHistoryStore.touchHistory;
   if (skipOverBubbleShouldSetFrom) {
-    EventPropagators_1.accumulateTwoPhaseDispatchesSkipTarget(shouldSetEvent);
+    EventPropagators.accumulateTwoPhaseDispatchesSkipTarget(shouldSetEvent);
   } else {
-    EventPropagators_1.accumulateTwoPhaseDispatches(shouldSetEvent);
+    EventPropagators.accumulateTwoPhaseDispatches(shouldSetEvent);
   }
   var wantsResponderInst = executeDispatchesInOrderStopAtTrue$1(shouldSetEvent);
   if (!shouldSetEvent.isPersistent()) {
@@ -1962,34 +1997,34 @@ function setResponderAndExtractTransfer(topLevelType, targetInst, nativeEvent, n
     return null;
   }
   var extracted;
-  var grantEvent = ResponderSyntheticEvent_1.getPooled(eventTypes.responderGrant, wantsResponderInst, nativeEvent, nativeEventTarget);
-  grantEvent.touchHistory = ResponderTouchHistoryStore_1.touchHistory;
+  var grantEvent = ResponderSyntheticEvent.getPooled(eventTypes.responderGrant, wantsResponderInst, nativeEvent, nativeEventTarget);
+  grantEvent.touchHistory = ResponderTouchHistoryStore.touchHistory;
 
-  EventPropagators_1.accumulateDirectDispatches(grantEvent);
+  EventPropagators.accumulateDirectDispatches(grantEvent);
   var blockHostResponder = executeDirectDispatch$1(grantEvent) === true;
   if (responderInst) {
-    var terminationRequestEvent = ResponderSyntheticEvent_1.getPooled(eventTypes.responderTerminationRequest, responderInst, nativeEvent, nativeEventTarget);
-    terminationRequestEvent.touchHistory = ResponderTouchHistoryStore_1.touchHistory;
-    EventPropagators_1.accumulateDirectDispatches(terminationRequestEvent);
+    var terminationRequestEvent = ResponderSyntheticEvent.getPooled(eventTypes.responderTerminationRequest, responderInst, nativeEvent, nativeEventTarget);
+    terminationRequestEvent.touchHistory = ResponderTouchHistoryStore.touchHistory;
+    EventPropagators.accumulateDirectDispatches(terminationRequestEvent);
     var shouldSwitch = !hasDispatches$1(terminationRequestEvent) || executeDirectDispatch$1(terminationRequestEvent);
     if (!terminationRequestEvent.isPersistent()) {
       terminationRequestEvent.constructor.release(terminationRequestEvent);
     }
 
     if (shouldSwitch) {
-      var terminateEvent = ResponderSyntheticEvent_1.getPooled(eventTypes.responderTerminate, responderInst, nativeEvent, nativeEventTarget);
-      terminateEvent.touchHistory = ResponderTouchHistoryStore_1.touchHistory;
-      EventPropagators_1.accumulateDirectDispatches(terminateEvent);
-      extracted = accumulate_1(extracted, [grantEvent, terminateEvent]);
+      var terminateEvent = ResponderSyntheticEvent.getPooled(eventTypes.responderTerminate, responderInst, nativeEvent, nativeEventTarget);
+      terminateEvent.touchHistory = ResponderTouchHistoryStore.touchHistory;
+      EventPropagators.accumulateDirectDispatches(terminateEvent);
+      extracted = accumulate(extracted, [grantEvent, terminateEvent]);
       changeResponder(wantsResponderInst, blockHostResponder);
     } else {
-      var rejectEvent = ResponderSyntheticEvent_1.getPooled(eventTypes.responderReject, wantsResponderInst, nativeEvent, nativeEventTarget);
-      rejectEvent.touchHistory = ResponderTouchHistoryStore_1.touchHistory;
-      EventPropagators_1.accumulateDirectDispatches(rejectEvent);
-      extracted = accumulate_1(extracted, rejectEvent);
+      var rejectEvent = ResponderSyntheticEvent.getPooled(eventTypes.responderReject, wantsResponderInst, nativeEvent, nativeEventTarget);
+      rejectEvent.touchHistory = ResponderTouchHistoryStore.touchHistory;
+      EventPropagators.accumulateDirectDispatches(rejectEvent);
+      extracted = accumulate(extracted, rejectEvent);
     }
   } else {
-    extracted = accumulate_1(extracted, grantEvent);
+    extracted = accumulate(extracted, grantEvent);
     changeResponder(wantsResponderInst, blockHostResponder);
   }
   return extracted;
@@ -2028,8 +2063,8 @@ function noResponderTouches(nativeEvent) {
     var target = activeTouch.target;
     if (target !== null && target !== undefined && target !== 0) {
       // Is the original touch location inside of the current responder?
-      var targetInst = EventPluginUtils_1.getInstanceFromNode(target);
-      if (ReactTreeTraversal.isAncestor(responderInst, targetInst)) {
+      var targetInst = EventPluginUtils.getInstanceFromNode(target);
+      if (isAncestor(responderInst, targetInst)) {
         return false;
       }
     }
@@ -2062,7 +2097,7 @@ var ResponderEventPlugin = {
       }
     }
 
-    ResponderTouchHistoryStore_1.recordTouchTrack(topLevelType, nativeEvent);
+    ResponderTouchHistoryStore.recordTouchTrack(topLevelType, nativeEvent);
 
     var extracted = canTriggerTransfer(topLevelType, targetInst, nativeEvent) ? setResponderAndExtractTransfer(topLevelType, targetInst, nativeEvent, nativeEventTarget) : null;
     // Responder may or may not have transferred on a new touch start/move.
@@ -2081,24 +2116,24 @@ var ResponderEventPlugin = {
     var incrementalTouch = isResponderTouchStart ? eventTypes.responderStart : isResponderTouchMove ? eventTypes.responderMove : isResponderTouchEnd ? eventTypes.responderEnd : null;
 
     if (incrementalTouch) {
-      var gesture = ResponderSyntheticEvent_1.getPooled(incrementalTouch, responderInst, nativeEvent, nativeEventTarget);
-      gesture.touchHistory = ResponderTouchHistoryStore_1.touchHistory;
-      EventPropagators_1.accumulateDirectDispatches(gesture);
-      extracted = accumulate_1(extracted, gesture);
+      var gesture = ResponderSyntheticEvent.getPooled(incrementalTouch, responderInst, nativeEvent, nativeEventTarget);
+      gesture.touchHistory = ResponderTouchHistoryStore.touchHistory;
+      EventPropagators.accumulateDirectDispatches(gesture);
+      extracted = accumulate(extracted, gesture);
     }
 
     var isResponderTerminate = responderInst && topLevelType === 'topTouchCancel';
     var isResponderRelease = responderInst && !isResponderTerminate && isEndish$1(topLevelType) && noResponderTouches(nativeEvent);
     var finalTouch = isResponderTerminate ? eventTypes.responderTerminate : isResponderRelease ? eventTypes.responderRelease : null;
     if (finalTouch) {
-      var finalEvent = ResponderSyntheticEvent_1.getPooled(finalTouch, responderInst, nativeEvent, nativeEventTarget);
-      finalEvent.touchHistory = ResponderTouchHistoryStore_1.touchHistory;
-      EventPropagators_1.accumulateDirectDispatches(finalEvent);
-      extracted = accumulate_1(extracted, finalEvent);
+      var finalEvent = ResponderSyntheticEvent.getPooled(finalTouch, responderInst, nativeEvent, nativeEventTarget);
+      finalEvent.touchHistory = ResponderTouchHistoryStore.touchHistory;
+      EventPropagators.accumulateDirectDispatches(finalEvent);
+      extracted = accumulate(extracted, finalEvent);
       changeResponder(null);
     }
 
-    var numberActiveTouches = ResponderTouchHistoryStore_1.touchHistory.numberActiveTouches;
+    var numberActiveTouches = ResponderTouchHistoryStore.touchHistory.numberActiveTouches;
     if (ResponderEventPlugin.GlobalInteractionHandler && numberActiveTouches !== previousActiveTouches) {
       ResponderEventPlugin.GlobalInteractionHandler.onChange(numberActiveTouches);
     }
@@ -2130,8 +2165,6 @@ var ResponderEventPlugin = {
   }
 };
 
-var ResponderEventPlugin_1 = ResponderEventPlugin;
-
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -2139,26 +2172,31 @@ var ResponderEventPlugin_1 = ResponderEventPlugin;
  * LICENSE file in the root directory of this source tree.
  */
 
-
-
-
-
 // This is used by react-native-web.
-var ReactDOMUnstableNativeDependencies = {
-  injectComponentTree: EventPluginUtils_1.injection.injectComponentTree,
-  ResponderEventPlugin: ResponderEventPlugin_1,
-  ResponderTouchHistoryStore: ResponderTouchHistoryStore_1
-};
-
+var injectComponentTree = EventPluginUtils.injection.injectComponentTree;
 // Inject react-dom's ComponentTree into this module.
+var ReactDOMComponentTree = ReactDOM.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactDOMComponentTree;
 
-var ReactDOMComponentTree = reactDom.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactDOMComponentTree;
+injectComponentTree(ReactDOMComponentTree);
 
-ReactDOMUnstableNativeDependencies.injectComponentTree(ReactDOMComponentTree);
+var ReactDOMUnstableNativeDependencies = Object.freeze({
+	injectComponentTree: injectComponentTree,
+	ResponderEventPlugin: ResponderEventPlugin,
+	ResponderTouchHistoryStore: ResponderTouchHistoryStore
+});
 
-var ReactDOMUnstableNativeDependencies_1 = ReactDOMUnstableNativeDependencies;
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * 
+ */
 
-var unstableNativeDependencies = ReactDOMUnstableNativeDependencies_1;
+
+
+var unstableNativeDependencies = ReactDOMUnstableNativeDependencies;
 
 module.exports = unstableNativeDependencies;
 
