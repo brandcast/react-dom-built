@@ -1,4 +1,4 @@
-/** @license React v16.1.0-beta
+/** @license React v16.1.1
  * react-dom-test-utils.development.js
  *
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -6,12 +6,11 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
+
 'use strict';
 
-
 if (process.env.NODE_ENV !== "production") {
-(function() {
-
+  (function() {
 'use strict';
 
 var _assign = require('object-assign');
@@ -23,26 +22,10 @@ var emptyFunction = require('fbjs/lib/emptyFunction');
 var ExecutionEnvironment = require('fbjs/lib/ExecutionEnvironment');
 
 /**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * 
- */
-
-/**
  * WARNING: DO NOT manually require this module.
  * This is a replacement for `invariant(...)` used by the error code system
  * and will _only_ be required by the corresponding babel pass.
  * It always throws.
- */
-
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
  */
 
 /**
@@ -56,33 +39,17 @@ var ExecutionEnvironment = require('fbjs/lib/ExecutionEnvironment');
  */
 
 /**
-   * This API should be called `delete` but we'd have to make sure to always
-   * transform these to strings for IE support. When this transform is fully
-   * supported we can rename it.
-   */
+ * This API should be called `delete` but we'd have to make sure to always
+ * transform these to strings for IE support. When this transform is fully
+ * supported we can rename it.
+ */
 
 
 function get(key) {
   return key._reactInternalFiber;
 }
 
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
 // Before we know whether it is functional or class
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * 
- */
-
 var FunctionalComponent = 1;
 var ClassComponent = 2;
 var HostRoot = 3; // Root of a host tree. Could be nested inside another node.
@@ -92,15 +59,6 @@ var HostText = 6;
 
 // Don't change these two values:
 var NoEffect = 0; //           0b00000000
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * 
- */
-
  //      0b00000001
 
 // You can change the rest (and add more).
@@ -265,13 +223,6 @@ function findCurrentFiberUsingSlowPath(fiber) {
   // Otherwise B has to be current branch.
   return alternate;
 }
-
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
 
 /* eslint valid-typeof: 0 */
 
@@ -458,9 +409,9 @@ SyntheticEvent.augmentClass = function (Class, Interface) {
 };
 
 /** Proxying after everything set on SyntheticEvent
-  * to resolve Proxy issue on some WebKit browsers
-  * in which some Event properties are set to undefined (GH#10010)
-  */
+ * to resolve Proxy issue on some WebKit browsers
+ * in which some Event properties are set to undefined (GH#10010)
+ */
 {
   if (isProxySupported) {
     /*eslint-disable no-func-assign */
@@ -488,12 +439,12 @@ SyntheticEvent.augmentClass = function (Class, Interface) {
 addEventPoolingTo(SyntheticEvent);
 
 /**
-  * Helper to nullify syntheticEvent instance properties when destructing
-  *
-  * @param {String} propName
-  * @param {?object} getVal
-  * @return {object} defineProperty object
-  */
+ * Helper to nullify syntheticEvent instance properties when destructing
+ *
+ * @param {String} propName
+ * @param {?object} getVal
+ * @return {object} defineProperty object
+ */
 function getPooledWarningPropertyDefinition(propName, getVal) {
   var isFunction = typeof getVal === 'function';
   return {
@@ -547,13 +498,6 @@ function addEventPoolingTo(EventConstructor) {
 }
 
 var SyntheticEvent$1 = SyntheticEvent;
-
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
 
 /**
  * Generate a mapping of standard vendor prefixes using the defined style property and event name.
@@ -641,13 +585,6 @@ function getVendorPrefixedEventName(eventName) {
 }
 
 /**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-/**
  * Types of raw signals from the browser caught at the top level.
  *
  * For events like 'submit' which don't consistently bubble (which we
@@ -728,13 +665,6 @@ var topLevelTypes$1 = {
 var BrowserEventConstants = {
   topLevelTypes: topLevelTypes$1
 };
-
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
 
 var findDOMNode = ReactDOM.findDOMNode;
 var _ReactDOM$__SECRET_IN = ReactDOM.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
@@ -1119,24 +1049,10 @@ var ReactTestUtils$2 = Object.freeze({
 
 var ReactTestUtils$3 = ( ReactTestUtils$2 && ReactTestUtils ) || ReactTestUtils$2;
 
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * 
- */
-
-
-
-
-
 // TODO: decide on the top-level export form.
 // This is hacky but makes it work with both Rollup and Jest.
 var testUtils = ReactTestUtils$3['default'] ? ReactTestUtils$3['default'] : ReactTestUtils$3;
 
 module.exports = testUtils;
-
-})();
+  })();
 }
