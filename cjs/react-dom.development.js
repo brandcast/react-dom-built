@@ -4029,8 +4029,8 @@ function getElementsWithSelections(acc, win) {
     return acc;
   }
   var element = getActiveElement(doc);
-  // Use getSelection if no activeElement with selection capabilities
-  if (!hasSelectionCapabilities(element)) {
+  // Use getSelection if activeElement is the document body
+  if (element === doc.body) {
     if (win.getSelection) {
       var selection = win.getSelection();
       if (selection) {
@@ -4132,7 +4132,7 @@ function restoreSelection(priorSelectionInformation) {
     }
   });
 
-  if (curActiveElement !== priorActiveElement && isInDocument(priorActiveElement)) {
+  if (curActiveElement !== priorActiveElement) {
     focusNodePreservingScroll(priorActiveElement);
   }
 }
@@ -4232,6 +4232,16 @@ function getSelection(node) {
 }
 
 /**
+ * Get document associated with the event target.
+ *
+ * @param {object} nativeEventTarget
+ * @return {Document}
+ */
+function getEventTargetDocument(eventTarget) {
+  return eventTarget.window === eventTarget ? eventTarget.document : eventTarget.nodeType === DOCUMENT_NODE ? eventTarget : eventTarget.ownerDocument;
+}
+
+/**
  * Poll selection to see whether it's changed.
  *
  * @param {object} nativeEvent
@@ -4243,7 +4253,7 @@ function constructSelectEvent(nativeEvent, nativeEventTarget) {
   // selection (this matches native `select` event behavior). In HTML5, select
   // fires only on input and textarea thus if there's no focused element we
   // won't dispatch.
-  var doc = nativeEventTarget.ownerDocument || nativeEventTarget.document || nativeEventTarget;
+  var doc = getEventTargetDocument(nativeEventTarget);
 
   if (mouseDown || activeElement$1 == null || activeElement$1 !== getActiveElement(doc)) {
     return null;
@@ -4285,7 +4295,7 @@ var SelectEventPlugin = {
   eventTypes: eventTypes$3,
 
   extractEvents: function (topLevelType, targetInst, nativeEvent, nativeEventTarget) {
-    var doc = nativeEventTarget.window === nativeEventTarget ? nativeEventTarget.document : nativeEventTarget.nodeType === DOCUMENT_NODE ? nativeEventTarget : nativeEventTarget.ownerDocument;
+    var doc = getEventTargetDocument(nativeEventTarget);
     // Track whether all listeners exists for this plugin. If none exist, we do
     // not extract events. See #3639.
     if (!doc || !isListeningToAllDependencies('onSelect', doc)) {
@@ -4369,11 +4379,7 @@ SyntheticEvent$1.augmentClass(SyntheticAnimationEvent, AnimationEventInterface);
  */
 var ClipboardEventInterface = {
   clipboardData: function (event) {
-    if ('clipboardData' in event) {
-      return event.clipboardData;
-    }
-    var doc = event.target && event.target.ownerDocument || document;
-    return doc.defaultView.clipboardData;
+    return 'clipboardData' in event ? event.clipboardData : window.clipboardData;
   }
 };
 
