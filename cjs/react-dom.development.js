@@ -1,4 +1,4 @@
-/** @license React v16.1.1
+/** @license React v16.2.0
  * react-dom.development.js
  *
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -9,6 +9,8 @@
 
 'use strict';
 
+
+
 if (process.env.NODE_ENV !== "production") {
   (function() {
 'use strict';
@@ -18,7 +20,7 @@ var invariant = require('fbjs/lib/invariant');
 var warning = require('fbjs/lib/warning');
 var ExecutionEnvironment = require('fbjs/lib/ExecutionEnvironment');
 var _assign = require('object-assign');
-var emptyFunction$1 = require('fbjs/lib/emptyFunction');
+var emptyFunction = require('fbjs/lib/emptyFunction');
 var EventListener = require('fbjs/lib/EventListener');
 var getActiveElement = require('fbjs/lib/getActiveElement');
 var shallowEqual = require('fbjs/lib/shallowEqual');
@@ -1565,7 +1567,7 @@ var EventInterface = {
   type: null,
   target: null,
   // currentTarget is set when dispatching; no use in copying it here
-  currentTarget: emptyFunction$1.thatReturnsNull,
+  currentTarget: emptyFunction.thatReturnsNull,
   eventPhase: null,
   bubbles: null,
   cancelable: null,
@@ -1628,11 +1630,11 @@ function SyntheticEvent(dispatchConfig, targetInst, nativeEvent, nativeEventTarg
 
   var defaultPrevented = nativeEvent.defaultPrevented != null ? nativeEvent.defaultPrevented : nativeEvent.returnValue === false;
   if (defaultPrevented) {
-    this.isDefaultPrevented = emptyFunction$1.thatReturnsTrue;
+    this.isDefaultPrevented = emptyFunction.thatReturnsTrue;
   } else {
-    this.isDefaultPrevented = emptyFunction$1.thatReturnsFalse;
+    this.isDefaultPrevented = emptyFunction.thatReturnsFalse;
   }
-  this.isPropagationStopped = emptyFunction$1.thatReturnsFalse;
+  this.isPropagationStopped = emptyFunction.thatReturnsFalse;
   return this;
 }
 
@@ -1649,7 +1651,7 @@ _assign(SyntheticEvent.prototype, {
     } else if (typeof event.returnValue !== 'unknown') {
       event.returnValue = false;
     }
-    this.isDefaultPrevented = emptyFunction$1.thatReturnsTrue;
+    this.isDefaultPrevented = emptyFunction.thatReturnsTrue;
   },
 
   stopPropagation: function () {
@@ -1669,7 +1671,7 @@ _assign(SyntheticEvent.prototype, {
       event.cancelBubble = true;
     }
 
-    this.isPropagationStopped = emptyFunction$1.thatReturnsTrue;
+    this.isPropagationStopped = emptyFunction.thatReturnsTrue;
   },
 
   /**
@@ -1678,7 +1680,7 @@ _assign(SyntheticEvent.prototype, {
    * won't be added back into the pool.
    */
   persist: function () {
-    this.isPersistent = emptyFunction$1.thatReturnsTrue;
+    this.isPersistent = emptyFunction.thatReturnsTrue;
   },
 
   /**
@@ -1686,7 +1688,7 @@ _assign(SyntheticEvent.prototype, {
    *
    * @return {boolean} True if this should not be released, false otherwise.
    */
-  isPersistent: emptyFunction$1.thatReturnsFalse,
+  isPersistent: emptyFunction.thatReturnsFalse,
 
   /**
    * `PooledClass` looks for `destructor` on each instance it releases.
@@ -1703,8 +1705,8 @@ _assign(SyntheticEvent.prototype, {
     }
     {
       Object.defineProperty(this, 'nativeEvent', getPooledWarningPropertyDefinition('nativeEvent', null));
-      Object.defineProperty(this, 'preventDefault', getPooledWarningPropertyDefinition('preventDefault', emptyFunction$1));
-      Object.defineProperty(this, 'stopPropagation', getPooledWarningPropertyDefinition('stopPropagation', emptyFunction$1));
+      Object.defineProperty(this, 'preventDefault', getPooledWarningPropertyDefinition('preventDefault', emptyFunction));
+      Object.defineProperty(this, 'stopPropagation', getPooledWarningPropertyDefinition('stopPropagation', emptyFunction));
     }
   }
 });
@@ -3719,17 +3721,7 @@ function listenTo(registrationName, contentDocumentHandle) {
   for (var i = 0; i < dependencies.length; i++) {
     var dependency = dependencies[i];
     if (!(isListening.hasOwnProperty(dependency) && isListening[dependency])) {
-      if (dependency === 'topWheel') {
-        if (isEventSupported('wheel')) {
-          trapBubbledEvent('topWheel', 'wheel', mountAt);
-        } else if (isEventSupported('mousewheel')) {
-          trapBubbledEvent('topWheel', 'mousewheel', mountAt);
-        } else {
-          // Firefox needs to capture a different mouse scroll event.
-          // @see http://www.quirksmode.org/dom/events/tests/scroll.html
-          trapBubbledEvent('topWheel', 'DOMMouseScroll', mountAt);
-        }
-      } else if (dependency === 'topScroll') {
+      if (dependency === 'topScroll') {
         trapCapturedEvent('topScroll', 'scroll', mountAt);
       } else if (dependency === 'topFocus' || dependency === 'topBlur') {
         trapCapturedEvent('topFocus', 'focus', mountAt);
@@ -4873,8 +4865,6 @@ injection$1.injectEventPluginsByName({
 
 var enableAsyncSubtreeAPI = true;
 var enableAsyncSchedulingByDefaultInReactDOM = false;
-// Exports React.Fragment
-var enableReactFragment = false;
 // Exports ReactDOM.createRoot
 var enableCreateRoot = false;
 var enableUserTimingAPI = true;
@@ -5689,8 +5679,7 @@ var AsyncUpdates = 1;
   try {
     var nonExtensibleObject = Object.preventExtensions({});
     /* eslint-disable no-new */
-    new Map([[nonExtensibleObject, null]]);
-    new Set([nonExtensibleObject]);
+    
     /* eslint-enable no-new */
   } catch (e) {
     // TODO: Consider warning about bad polyfills
@@ -6439,10 +6428,10 @@ var ReactFiberClassComponent = function (scheduleWork, computeExpirationForFiber
 
     var state = instance.state;
     if (state && (typeof state !== 'object' || isArray(state))) {
-      invariant(false, '%s.state: must be set to an object or null', getComponentName(workInProgress));
+      warning(false, '%s.state: must be set to an object or null', getComponentName(workInProgress));
     }
     if (typeof instance.getChildContext === 'function') {
-      !(typeof workInProgress.type.childContextTypes === 'object') ? invariant(false, '%s.getChildContext(): childContextTypes must be defined in order to use getChildContext().', getComponentName(workInProgress)) : void 0;
+      warning(typeof workInProgress.type.childContextTypes === 'object', '%s.getChildContext(): childContextTypes must be defined in order to ' + 'use getChildContext().', getComponentName(workInProgress));
     }
   }
 
@@ -6759,23 +6748,28 @@ var ReactFiberClassComponent = function (scheduleWork, computeExpirationForFiber
   };
 };
 
-// The Symbol used to tag the special React types. If there is no native Symbol
+// The Symbol used to tag the ReactElement-like types. If there is no native Symbol
 // nor polyfill, then a plain number is used for performance.
-var REACT_PORTAL_TYPE = typeof Symbol === 'function' && Symbol['for'] && Symbol['for']('react.portal') || 0xeaca;
+var hasSymbol = typeof Symbol === 'function' && Symbol['for'];
 
-function createPortal$1(children, containerInfo,
-// TODO: figure out the API for cross-renderer implementation.
-implementation) {
-  var key = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+var REACT_ELEMENT_TYPE = hasSymbol ? Symbol['for']('react.element') : 0xeac7;
+var REACT_CALL_TYPE = hasSymbol ? Symbol['for']('react.call') : 0xeac8;
+var REACT_RETURN_TYPE = hasSymbol ? Symbol['for']('react.return') : 0xeac9;
+var REACT_PORTAL_TYPE = hasSymbol ? Symbol['for']('react.portal') : 0xeaca;
+var REACT_FRAGMENT_TYPE = hasSymbol ? Symbol['for']('react.fragment') : 0xeacb;
 
-  return {
-    // This tag allow us to uniquely identify this as a React Portal
-    $$typeof: REACT_PORTAL_TYPE,
-    key: key == null ? null : '' + key,
-    children: children,
-    containerInfo: containerInfo,
-    implementation: implementation
-  };
+var MAYBE_ITERATOR_SYMBOL = typeof Symbol === 'function' && Symbol.iterator;
+var FAUX_ITERATOR_SYMBOL = '@@iterator';
+
+function getIteratorFn(maybeIterable) {
+  if (maybeIterable === null || typeof maybeIterable === 'undefined') {
+    return null;
+  }
+  var maybeIterator = MAYBE_ITERATOR_SYMBOL && maybeIterable[MAYBE_ITERATOR_SYMBOL] || maybeIterable[FAUX_ITERATOR_SYMBOL];
+  if (typeof maybeIterator === 'function') {
+    return maybeIterator;
+  }
+  return null;
 }
 
 var getCurrentFiberStackAddendum$1 = ReactDebugCurrentFiber.getCurrentFiberStackAddendum;
@@ -6812,38 +6806,6 @@ var getCurrentFiberStackAddendum$1 = ReactDebugCurrentFiber.getCurrentFiberStack
 }
 
 var isArray$1 = Array.isArray;
-
-var ITERATOR_SYMBOL = typeof Symbol === 'function' && Symbol.iterator;
-var FAUX_ITERATOR_SYMBOL = '@@iterator'; // Before Symbol spec.
-
-// The Symbol used to tag the ReactElement-like types. If there is no native Symbol
-// nor polyfill, then a plain number is used for performance.
-var REACT_ELEMENT_TYPE;
-var REACT_CALL_TYPE;
-var REACT_RETURN_TYPE;
-var REACT_FRAGMENT_TYPE;
-if (typeof Symbol === 'function' && Symbol['for']) {
-  REACT_ELEMENT_TYPE = Symbol['for']('react.element');
-  REACT_CALL_TYPE = Symbol['for']('react.call');
-  REACT_RETURN_TYPE = Symbol['for']('react.return');
-  REACT_FRAGMENT_TYPE = Symbol['for']('react.fragment');
-} else {
-  REACT_ELEMENT_TYPE = 0xeac7;
-  REACT_CALL_TYPE = 0xeac8;
-  REACT_RETURN_TYPE = 0xeac9;
-  REACT_FRAGMENT_TYPE = 0xeacb;
-}
-
-function getIteratorFn(maybeIterable) {
-  if (maybeIterable === null || typeof maybeIterable === 'undefined') {
-    return null;
-  }
-  var iteratorFn = ITERATOR_SYMBOL && maybeIterable[ITERATOR_SYMBOL] || maybeIterable[FAUX_ITERATOR_SYMBOL];
-  if (typeof iteratorFn === 'function') {
-    return iteratorFn;
-  }
-  return null;
-}
 
 function coerceRef(current, element) {
   var mixedRef = element.ref;
@@ -7763,7 +7725,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     // Handle top level unkeyed fragments as if they were arrays.
     // This leads to an ambiguity between <>{[...]}</> and <>...</>.
     // We treat the ambiguous cases above the same.
-    if (enableReactFragment && typeof newChild === 'object' && newChild !== null && newChild.type === REACT_FRAGMENT_TYPE && newChild.key === null) {
+    if (typeof newChild === 'object' && newChild !== null && newChild.type === REACT_FRAGMENT_TYPE && newChild.key === null) {
       newChild = newChild.props.children;
     }
 
@@ -9852,6 +9814,12 @@ function logCapturedError(capturedError) {
     return;
   }
 
+  var error = capturedError.error;
+  var suppressLogging = error && error.suppressReactErrorLogging;
+  if (suppressLogging) {
+    return;
+  }
+
   {
     var componentName = capturedError.componentName,
         componentStack = capturedError.componentStack,
@@ -10676,7 +10644,10 @@ var ReactFiberScheduler = function (config) {
       } catch (e) {
         // Prevent cycle if logCapturedError() throws.
         // A cycle may still occur if logCapturedError renders a component that throws.
-        console.error(e);
+        var suppressLogging = e && e.suppressReactErrorLogging;
+        if (!suppressLogging) {
+          console.error(e);
+        }
       }
 
       // If we're in the commit phase, defer scheduling an update on the
@@ -10821,6 +10792,19 @@ var ReactFiberScheduler = function (config) {
     return scheduleWorkImpl(fiber, expirationTime, false);
   }
 
+  function checkRootNeedsClearing(root, fiber, expirationTime) {
+    if (!isWorking && root === nextRoot && expirationTime < nextRenderExpirationTime) {
+      // Restart the root from the top.
+      if (nextUnitOfWork !== null) {
+        // This is an interruption. (Used for performance tracking.)
+        interruptedBy = fiber;
+      }
+      nextRoot = null;
+      nextUnitOfWork = null;
+      nextRenderExpirationTime = NoWork;
+    }
+  }
+
   function scheduleWorkImpl(fiber, expirationTime, isErrorRecovery) {
     recordScheduleUpdate();
 
@@ -10846,17 +10830,10 @@ var ReactFiberScheduler = function (config) {
       if (node['return'] === null) {
         if (node.tag === HostRoot) {
           var root = node.stateNode;
-          if (!isWorking && root === nextRoot && expirationTime < nextRenderExpirationTime) {
-            // Restart the root from the top.
-            if (nextUnitOfWork !== null) {
-              // This is an interruption. (Used for performance tracking.)
-              interruptedBy = fiber;
-            }
-            nextRoot = null;
-            nextUnitOfWork = null;
-            nextRenderExpirationTime = NoWork;
-          }
+
+          checkRootNeedsClearing(root, fiber, expirationTime);
           requestWork(root, expirationTime);
+          checkRootNeedsClearing(root, fiber, expirationTime);
         } else {
           {
             if (!isErrorRecovery && fiber.tag === ClassComponent) {
@@ -11422,9 +11399,24 @@ var ReactFiberReconciler$3 = ( ReactFiberReconciler$2 && ReactFiberReconciler$1 
 // This is hacky but makes it work with both Rollup and Jest.
 var reactReconciler = ReactFiberReconciler$3['default'] ? ReactFiberReconciler$3['default'] : ReactFiberReconciler$3;
 
+function createPortal$1(children, containerInfo,
+// TODO: figure out the API for cross-renderer implementation.
+implementation) {
+  var key = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+
+  return {
+    // This tag allow us to uniquely identify this as a React Portal
+    $$typeof: REACT_PORTAL_TYPE,
+    key: key == null ? null : '' + key,
+    children: children,
+    containerInfo: containerInfo,
+    implementation: implementation
+  };
+}
+
 // TODO: this is special because it gets imported during build.
 
-var ReactVersion = '16.1.1';
+var ReactVersion = '16.2.0';
 
 // a requestAnimationFrame, storing the time for the start of the frame, then
 // scheduling a postMessage which gets scheduled after paint. Within the
@@ -12571,89 +12563,6 @@ var setInnerHTML = createMicrosoftUnsafeLocalFunction(function (node, html) {
   }
 });
 
-// code copied and modified from escape-html
-/**
- * Module variables.
- * @private
- */
-
-var matchHtmlRegExp = /["'&<>]/;
-
-/**
- * Escape special characters in the given string of html.
- *
- * @param  {string} string The string to escape for inserting into HTML
- * @return {string}
- * @public
- */
-
-function escapeHtml(string) {
-  var str = '' + string;
-  var match = matchHtmlRegExp.exec(str);
-
-  if (!match) {
-    return str;
-  }
-
-  var escape;
-  var html = '';
-  var index = 0;
-  var lastIndex = 0;
-
-  for (index = match.index; index < str.length; index++) {
-    switch (str.charCodeAt(index)) {
-      case 34:
-        // "
-        escape = '&quot;';
-        break;
-      case 38:
-        // &
-        escape = '&amp;';
-        break;
-      case 39:
-        // '
-        escape = '&#x27;'; // modified from escape-html; used to be '&#39'
-        break;
-      case 60:
-        // <
-        escape = '&lt;';
-        break;
-      case 62:
-        // >
-        escape = '&gt;';
-        break;
-      default:
-        continue;
-    }
-
-    if (lastIndex !== index) {
-      html += str.substring(lastIndex, index);
-    }
-
-    lastIndex = index + 1;
-    html += escape;
-  }
-
-  return lastIndex !== index ? html + str.substring(lastIndex, index) : html;
-}
-// end code copied and modified from escape-html
-
-/**
- * Escapes text to prevent scripting attacks.
- *
- * @param {*} text Text value to escape.
- * @return {string} An escaped string.
- */
-function escapeTextContentForBrowser(text) {
-  if (typeof text === 'boolean' || typeof text === 'number') {
-    // this shortcircuit helps perf for types that we know will never have
-    // special characters, especially given that this function is used often
-    // for numeric dom ids.
-    return '' + text;
-  }
-  return escapeHtml(text);
-}
-
 /**
  * Set the textContent property of a node, ensuring that whitespace is preserved
  * even in IE8. innerText is a poor substitute for textContent and, among many
@@ -12675,20 +12584,6 @@ var setTextContent = function (node, text) {
   }
   node.textContent = text;
 };
-
-if (ExecutionEnvironment.canUseDOM) {
-  if (!('textContent' in document.documentElement)) {
-    setTextContent = function (node, text) {
-      if (node.nodeType === TEXT_NODE) {
-        node.nodeValue = text;
-        return;
-      }
-      setInnerHTML(node, escapeTextContentForBrowser(text));
-    };
-  }
-}
-
-var setTextContent$1 = setTextContent;
 
 /**
  * CSS properties which accept numbers but are not in units of "px".
@@ -12795,7 +12690,7 @@ function dangerousStyleValue(name, value, isCustomProperty) {
   return ('' + value).trim();
 }
 
-var warnValidStyle = emptyFunction$1;
+var warnValidStyle = emptyFunction;
 
 {
   // 'msTransform' is correct, but the other prefixes should be capitalized
@@ -13665,48 +13560,52 @@ function getStackAddendum$2() {
 {
   var warnedProperties$1 = {};
   var hasOwnProperty$1 = Object.prototype.hasOwnProperty;
-  var EVENT_NAME_REGEX = /^on[A-Z]/;
+  var EVENT_NAME_REGEX = /^on./;
+  var INVALID_EVENT_NAME_REGEX = /^on[^A-Z]/;
   var rARIA$1 = new RegExp('^(aria)-[' + ATTRIBUTE_NAME_CHAR + ']*$');
   var rARIACamel$1 = new RegExp('^(aria)[A-Z][' + ATTRIBUTE_NAME_CHAR + ']*$');
 
-  var validateProperty$1 = function (tagName, name, value) {
+  var validateProperty$1 = function (tagName, name, value, canUseEventSystem) {
     if (hasOwnProperty$1.call(warnedProperties$1, name) && warnedProperties$1[name]) {
       return true;
     }
 
-    if (registrationNameModules.hasOwnProperty(name)) {
-      return true;
-    }
-
-    if (plugins.length === 0 && EVENT_NAME_REGEX.test(name)) {
-      // If no event plugins have been injected, we might be in a server environment.
-      // Don't check events in this case.
-      return true;
-    }
-
     var lowerCasedName = name.toLowerCase();
-    var registrationName = possibleRegistrationNames.hasOwnProperty(lowerCasedName) ? possibleRegistrationNames[lowerCasedName] : null;
-
-    if (registrationName != null) {
-      warning(false, 'Invalid event handler property `%s`. Did you mean `%s`?%s', name, registrationName, getStackAddendum$2());
+    if (lowerCasedName === 'onfocusin' || lowerCasedName === 'onfocusout') {
+      warning(false, 'React uses onFocus and onBlur instead of onFocusIn and onFocusOut. ' + 'All React events are normalized to bubble, so onFocusIn and onFocusOut ' + 'are not needed/supported by React.');
       warnedProperties$1[name] = true;
       return true;
     }
 
-    if (lowerCasedName.indexOf('on') === 0 && lowerCasedName.length > 2) {
-      warning(false, 'Unknown event handler property `%s`. It will be ignored.%s', name, getStackAddendum$2());
+    // We can't rely on the event system being injected on the server.
+    if (canUseEventSystem) {
+      if (registrationNameModules.hasOwnProperty(name)) {
+        return true;
+      }
+      var registrationName = possibleRegistrationNames.hasOwnProperty(lowerCasedName) ? possibleRegistrationNames[lowerCasedName] : null;
+      if (registrationName != null) {
+        warning(false, 'Invalid event handler property `%s`. Did you mean `%s`?%s', name, registrationName, getStackAddendum$2());
+        warnedProperties$1[name] = true;
+        return true;
+      }
+      if (EVENT_NAME_REGEX.test(name)) {
+        warning(false, 'Unknown event handler property `%s`. It will be ignored.%s', name, getStackAddendum$2());
+        warnedProperties$1[name] = true;
+        return true;
+      }
+    } else if (EVENT_NAME_REGEX.test(name)) {
+      // If no event plugins have been injected, we are in a server environment.
+      // So we can't tell if the event name is correct for sure, but we can filter
+      // out known bad ones like `onclick`. We can't suggest a specific replacement though.
+      if (INVALID_EVENT_NAME_REGEX.test(name)) {
+        warning(false, 'Invalid event handler property `%s`. ' + 'React events use the camelCase naming convention, for example `onClick`.%s', name, getStackAddendum$2());
+      }
       warnedProperties$1[name] = true;
       return true;
     }
 
     // Let the ARIA attribute hook validate ARIA attributes
     if (rARIA$1.test(name) || rARIACamel$1.test(name)) {
-      return true;
-    }
-
-    if (lowerCasedName === 'onfocusin' || lowerCasedName === 'onfocusout') {
-      warning(false, 'React uses onFocus and onBlur instead of onFocusIn and onFocusOut. ' + 'All React events are normalized to bubble, so onFocusIn and onFocusOut ' + 'are not needed/supported by React.');
-      warnedProperties$1[name] = true;
       return true;
     }
 
@@ -13778,10 +13677,10 @@ function getStackAddendum$2() {
   };
 }
 
-var warnUnknownProperties = function (type, props) {
+var warnUnknownProperties = function (type, props, canUseEventSystem) {
   var unknownProps = [];
   for (var key in props) {
-    var isValid = validateProperty$1(type, key, props[key]);
+    var isValid = validateProperty$1(type, key, props[key], canUseEventSystem);
     if (!isValid) {
       unknownProps.push(key);
     }
@@ -13797,11 +13696,11 @@ var warnUnknownProperties = function (type, props) {
   }
 };
 
-function validateProperties$2(type, props) {
+function validateProperties$2(type, props, canUseEventSystem) {
   if (isCustomComponent(type, props)) {
     return;
   }
-  warnUnknownProperties(type, props);
+  warnUnknownProperties(type, props, canUseEventSystem);
 }
 
 // TODO: direct imports like some-package/src/* are bad. Fix me.
@@ -13822,7 +13721,7 @@ var HTML = '__html';
 var HTML_NAMESPACE = Namespaces.html;
 
 
-var getStack = emptyFunction$1.thatReturns('');
+var getStack = emptyFunction.thatReturns('');
 
 {
   getStack = getCurrentFiberStackAddendum$2;
@@ -13840,7 +13739,7 @@ var getStack = emptyFunction$1.thatReturns('');
   var validatePropertiesInDevelopment = function (type, props) {
     validateProperties(type, props);
     validateProperties$1(type, props);
-    validateProperties$2(type, props);
+    validateProperties$2(type, props, /* canUseEventSystem */true);
   };
 
   // HTML parsing normalizes CR and CRLF to LF.
@@ -13963,7 +13862,7 @@ function trapClickOnNonInteractiveElement(node) {
   // bookkeeping for it. Not sure if we need to clear it when the listener is
   // removed.
   // TODO: Only do this for the relevant Safaris maybe?
-  node.onclick = emptyFunction$1;
+  node.onclick = emptyFunction;
 }
 
 function setInitialDOMProperties(tag, domElement, rootContainerElement, nextProps, isCustomComponentTag) {
@@ -13995,10 +13894,10 @@ function setInitialDOMProperties(tag, domElement, rootContainerElement, nextProp
         // https://github.com/facebook/react/issues/6731#issuecomment-254874553
         var canSetTextContent = tag !== 'textarea' || nextProp !== '';
         if (canSetTextContent) {
-          setTextContent$1(domElement, nextProp);
+          setTextContent(domElement, nextProp);
         }
       } else if (typeof nextProp === 'number') {
-        setTextContent$1(domElement, '' + nextProp);
+        setTextContent(domElement, '' + nextProp);
       }
     } else if (propKey === SUPPRESS_CONTENT_EDITABLE_WARNING || propKey === SUPPRESS_HYDRATION_WARNING$1) {
       // Noop
@@ -14033,7 +13932,7 @@ function updateDOMProperties(domElement, updatePayload, wasCustomComponentTag, i
     } else if (propKey === DANGEROUSLY_SET_INNER_HTML) {
       setInnerHTML(domElement, propValue);
     } else if (propKey === CHILDREN) {
-      setTextContent$1(domElement, propValue);
+      setTextContent(domElement, propValue);
     } else if (isCustomComponentTag) {
       if (propValue != null) {
         setValueForAttribute(domElement, propKey, propValue);
@@ -14738,7 +14637,7 @@ var ReactDOMFiberComponent = Object.freeze({
 // TODO: direct imports like some-package/src/* are bad. Fix me.
 var getCurrentFiberStackAddendum$6 = ReactDebugCurrentFiber.getCurrentFiberStackAddendum;
 
-var validateDOMNesting = emptyFunction$1;
+var validateDOMNesting = emptyFunction;
 
 {
   // This validation code was written based on the HTML5 parsing spec:
