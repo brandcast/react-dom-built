@@ -56,6 +56,9 @@ var ReactInternals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 var ReactCurrentOwner = ReactInternals.ReactCurrentOwner;
 var ReactDebugCurrentFrame = ReactInternals.ReactDebugCurrentFrame;
 
+// The Symbol used to tag the ReactElement-like types. If there is no native Symbol
+// nor polyfill, then a plain number is used for performance.
+
 // Before we know whether it is functional or class
 var FunctionalComponent = 1;
 var ClassComponent = 2;
@@ -65,18 +68,11 @@ var HostComponent = 5;
 var HostText = 6;
 
 // Don't change these two values:
-var NoEffect = 0; //           0b00000000
- //      0b00000001
+var NoEffect = 0;
+
 
 // You can change the rest (and add more).
-var Placement = 2; //          0b00000010
- //             0b00000100
- // 0b00000110
- //           0b00001000
- //      0b00010000
- //          0b00100000
- //               0b01000000
- //              0b10000000
+var Placement = 2;
 
 var MOUNTING = 1;
 var MOUNTED = 2;
@@ -395,24 +391,26 @@ SyntheticEvent.Interface = EventInterface;
 
 /**
  * Helper to reduce boilerplate when creating subclasses.
- *
- * @param {function} Class
- * @param {?object} Interface
  */
-SyntheticEvent.augmentClass = function (Class, Interface) {
+SyntheticEvent.extend = function (Interface) {
   var Super = this;
 
   var E = function () {};
   E.prototype = Super.prototype;
   var prototype = new E();
 
+  function Class() {
+    return Super.apply(this, arguments);
+  }
   _assign(prototype, Class.prototype);
   Class.prototype = prototype;
   Class.prototype.constructor = Class;
 
   Class.Interface = _assign({}, Super.Interface, Interface);
-  Class.augmentClass = Super.augmentClass;
+  Class.extend = Super.extend;
   addEventPoolingTo(Class);
+
+  return Class;
 };
 
 /** Proxying after everything set on SyntheticEvent
@@ -985,7 +983,7 @@ function makeSimulator(eventType) {
 function buildSimulators() {
   ReactTestUtils.Simulate = {};
 
-  var eventType;
+  var eventType = void 0;
   for (eventType in EventPluginRegistry.eventNameDispatchConfigs) {
     /**
      * @param {!Element|ReactDOMComponent} domComponentOrNode

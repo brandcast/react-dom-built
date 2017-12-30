@@ -84,7 +84,7 @@ function isStartish(topLevelType) {
   return topLevelType === 'topMouseDown' || topLevelType === 'topTouchStart';
 }
 
-var validateEventDispatches;
+var validateEventDispatches = void 0;
 {
   validateEventDispatches = function (event) {
     var dispatchListeners = event._dispatchListeners;
@@ -267,7 +267,7 @@ function traverseTwoPhase(inst, fn, arg) {
     path.push(inst);
     inst = getParent(inst);
   }
-  var i;
+  var i = void 0;
   for (i = path.length; i-- > 0;) {
     fn(path[i], 'captured', arg);
   }
@@ -283,6 +283,24 @@ function traverseTwoPhase(inst, fn, arg) {
  * Does not invoke the callback on the nearest common ancestor because nothing
  * "entered" or "left" that element.
  */
+
+/**
+ * Forked from fbjs/warning:
+ * https://github.com/facebook/fbjs/blob/e66ba20ad5be433eb54423f2b097d829324d9de6/packages/fbjs/src/__forks__/warning.js
+ *
+ * Only change is we use console.warn instead of console.error,
+ * and do nothing when 'console' is not supported.
+ * This really simplifies the code.
+ * ---
+ * Similar to invariant but only logs a warning if the condition is not met.
+ * This can be used to log issues in development environments in critical
+ * paths. Removing the logging code for production environments will keep the
+ * same logic and follow the same code paths.
+ */
+
+{
+  
+}
 
 /**
  * Registers plugins so that they can extract and dispatch events.
@@ -453,7 +471,7 @@ function shouldPreventMouseEvent(name, type, props) {
  * @return {?function} The stored callback.
  */
 function getListener(inst, registrationName) {
-  var listener;
+  var listener = void 0;
 
   // TODO: shouldPreventMouseEvent is DOM-specific and definitely should not
   // live here; needs to be moved to a better place soon
@@ -764,24 +782,26 @@ SyntheticEvent.Interface = EventInterface;
 
 /**
  * Helper to reduce boilerplate when creating subclasses.
- *
- * @param {function} Class
- * @param {?object} Interface
  */
-SyntheticEvent.augmentClass = function (Class, Interface) {
+SyntheticEvent.extend = function (Interface) {
   var Super = this;
 
   var E = function () {};
   E.prototype = Super.prototype;
   var prototype = new E();
 
+  function Class() {
+    return Super.apply(this, arguments);
+  }
   _assign(prototype, Class.prototype);
   Class.prototype = prototype;
   Class.prototype.constructor = Class;
 
   Class.Interface = _assign({}, Super.Interface, Interface);
-  Class.augmentClass = Super.augmentClass;
+  Class.extend = Super.extend;
   addEventPoolingTo(Class);
+
+  return Class;
 };
 
 /** Proxying after everything set on SyntheticEvent
@@ -880,23 +900,11 @@ var SyntheticEvent$1 = SyntheticEvent;
  * interface will ensure that it is cleaned up when pooled/destroyed. The
  * `ResponderEventPlugin` will populate it appropriately.
  */
-var ResponderEventInterface = {
+var ResponderSyntheticEvent = SyntheticEvent$1.extend({
   touchHistory: function (nativeEvent) {
     return null; // Actually doesn't even look at the native event.
   }
-};
-
-/**
- * @param {object} dispatchConfig Configuration used to dispatch this event.
- * @param {string} dispatchMarker Marker identifying the event target.
- * @param {object} nativeEvent Native event.
- * @extends {SyntheticEvent}
- */
-function ResponderSyntheticEvent(dispatchConfig, dispatchMarker, nativeEvent, nativeEventTarget) {
-  return SyntheticEvent$1.call(this, dispatchConfig, dispatchMarker, nativeEvent, nativeEventTarget);
-}
-
-SyntheticEvent$1.augmentClass(ResponderSyntheticEvent, ResponderEventInterface);
+});
 
 /**
  * Tracks the position and time of each active touch by `touch.identifier`. We
@@ -1395,7 +1403,7 @@ function setResponderAndExtractTransfer(topLevelType, targetInst, nativeEvent, n
   if (!wantsResponderInst || wantsResponderInst === responderInst) {
     return null;
   }
-  var extracted;
+  var extracted = void 0;
   var grantEvent = ResponderSyntheticEvent.getPooled(eventTypes.responderGrant, wantsResponderInst, nativeEvent, nativeEventTarget);
   grantEvent.touchHistory = ResponderTouchHistoryStore.touchHistory;
 
