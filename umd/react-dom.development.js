@@ -4883,7 +4883,7 @@ function setOffsets(node, offsets) {
 }
 
 function isInDocument(node) {
-  return node.ownerDocument && containsNode_1(node.ownerDocument.documentElement, node);
+  return node && node.ownerDocument && containsNode_1(node.ownerDocument.documentElement, node);
 }
 
 function getActiveElementDeep() {
