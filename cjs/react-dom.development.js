@@ -4419,7 +4419,21 @@ function setOffsets(node, offsets) {
 }
 
 function isInDocument(node) {
-  return containsNode(document.documentElement, node);
+  return node && node.ownerDocument && containsNode(node.ownerDocument.documentElement, node);
+}
+
+function getActiveElementDeep() {
+  var win = window;
+  var element = getActiveElement();
+  while (element instanceof win.HTMLIFrameElement) {
+    try {
+      win = element.contentDocument.defaultView;
+    } catch (e) {
+      return element;
+    }
+    element = getActiveElement(win.document);
+  }
+  return element;
 }
 
 /**
@@ -4435,7 +4449,7 @@ function hasSelectionCapabilities(elem) {
 }
 
 function getSelectionInformation() {
-  var focusedElem = getActiveElement();
+  var focusedElem = getActiveElementDeep();
   return {
     focusedElem: focusedElem,
     selectionRange: hasSelectionCapabilities(focusedElem) ? getSelection$1(focusedElem) : null
@@ -4448,7 +4462,7 @@ function getSelectionInformation() {
  * nodes and place them back in, resulting in focus being lost.
  */
 function restoreSelection(priorSelectionInformation) {
-  var curFocusedElem = getActiveElement();
+  var curFocusedElem = getActiveElementDeep();
   var priorFocusedElem = priorSelectionInformation.focusedElem;
   var priorSelectionRange = priorSelectionInformation.selectionRange;
   if (curFocusedElem !== priorFocusedElem && isInDocument(priorFocusedElem)) {
