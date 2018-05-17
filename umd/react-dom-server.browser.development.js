@@ -1,4 +1,4 @@
-/** @license React v16.2.0
+/** @license React v16.3.2
  * react-dom-server.browser.development.js
  *
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -14,17 +14,6 @@
 	typeof define === 'function' && define.amd ? define(['react'], factory) :
 	(global.ReactDOMServer = factory(global.React));
 }(this, (function (React) { 'use strict';
-
-/**
- * WARNING: DO NOT manually require this module.
- * This is a replacement for `invariant(...)` used by the error code system
- * and will _only_ be required by the corresponding babel pass.
- * It always throws.
- */
-
-// TODO: this is special because it gets imported during build.
-
-var ReactVersion = '16.2.0';
 
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -79,6 +68,13 @@ function invariant(condition, format, a, b, c, d, e, f) {
 }
 
 var invariant_1 = invariant;
+
+// Relying on the `invariant()` implementation lets us
+// have preserve the format and params in the www builds.
+
+// TODO: this is special because it gets imported during build.
+
+var ReactVersion = '16.3.2';
 
 var ReactInternals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 
@@ -204,6 +200,59 @@ function hyphenateStyleName(string) {
 var hyphenateStyleName_1 = hyphenateStyleName;
 
 /**
+ * Forked from fbjs/warning:
+ * https://github.com/facebook/fbjs/blob/e66ba20ad5be433eb54423f2b097d829324d9de6/packages/fbjs/src/__forks__/warning.js
+ *
+ * Only change is we use console.warn instead of console.error,
+ * and do nothing when 'console' is not supported.
+ * This really simplifies the code.
+ * ---
+ * Similar to invariant but only logs a warning if the condition is not met.
+ * This can be used to log issues in development environments in critical
+ * paths. Removing the logging code for production environments will keep the
+ * same logic and follow the same code paths.
+ */
+
+var lowPriorityWarning = function () {};
+
+{
+  var printWarning = function (format) {
+    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      args[_key - 1] = arguments[_key];
+    }
+
+    var argIndex = 0;
+    var message = 'Warning: ' + format.replace(/%s/g, function () {
+      return args[argIndex++];
+    });
+    if (typeof console !== 'undefined') {
+      console.warn(message);
+    }
+    try {
+      // --- Welcome to debugging React ---
+      // This error was thrown as a convenience so that you can use this stack
+      // to find the callsite that caused this warning to fire.
+      throw new Error(message);
+    } catch (x) {}
+  };
+
+  lowPriorityWarning = function (condition, format) {
+    if (format === undefined) {
+      throw new Error('`warning(condition, format, ...args)` requires a warning ' + 'message argument');
+    }
+    if (!condition) {
+      for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+        args[_key2 - 2] = arguments[_key2];
+      }
+
+      printWarning.apply(undefined, [format].concat(args));
+    }
+  };
+}
+
+var lowPriorityWarning$1 = lowPriorityWarning;
+
+/**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
  * This source code is licensed under the MIT license found in the
@@ -253,7 +302,7 @@ var memoizeStringOnly_1 = memoizeStringOnly;
 var warning = emptyFunction_1;
 
 {
-  var printWarning = function printWarning(format) {
+  var printWarning$1 = function printWarning(format) {
     for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
       args[_key - 1] = arguments[_key];
     }
@@ -287,7 +336,7 @@ var warning = emptyFunction_1;
         args[_key2 - 2] = arguments[_key2];
       }
 
-      printWarning.apply(undefined, [format].concat(args));
+      printWarning$1.apply(undefined, [format].concat(args));
     }
   };
 }
@@ -376,15 +425,57 @@ var ReactInternals$1 = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 var ReactCurrentOwner = ReactInternals$1.ReactCurrentOwner;
 var ReactDebugCurrentFrame = ReactInternals$1.ReactDebugCurrentFrame;
 
+// Exports ReactDOM.createRoot
+
+
+// Mutating mode (React DOM, React ART, React Native):
+
+// Experimental noop mode (currently unused):
+
+// Experimental persistent mode (Fabric):
+
+// Experimental error-boundary API that can recover from errors within a single
+// render phase
+
+// Suspense
+
+// Helps identify side effects in begin-phase lifecycle hooks and setState reducers:
+
+
+// In some cases, StrictMode should also double-render lifecycles.
+// This can be confusing for tests though,
+// And it can be bad for performance in production.
+// This feature flag can be used to control the behavior:
+
+
+// To preserve the "Pause on caught exceptions" behavior of the debugger, we
+// replay the begin phase of a failed component inside invokeGuardedCallback.
+
+
+// Warn about deprecated, async-unsafe lifecycles; relates to RFC #6:
+var warnAboutDeprecatedLifecycles = false;
+
+// Gather advanced timing metrics for Profiler subtrees.
+
+
+// Fires getDerivedStateFromProps for state *or* props changes
+
+
+// Only used in www builds.
+
 // The Symbol used to tag the ReactElement-like types. If there is no native Symbol
 // nor polyfill, then a plain number is used for performance.
-var hasSymbol = typeof Symbol === 'function' && Symbol['for'];
+var hasSymbol = typeof Symbol === 'function' && Symbol.for;
 
 
-var REACT_CALL_TYPE = hasSymbol ? Symbol['for']('react.call') : 0xeac8;
-var REACT_RETURN_TYPE = hasSymbol ? Symbol['for']('react.return') : 0xeac9;
-var REACT_PORTAL_TYPE = hasSymbol ? Symbol['for']('react.portal') : 0xeaca;
-var REACT_FRAGMENT_TYPE = hasSymbol ? Symbol['for']('react.fragment') : 0xeacb;
+var REACT_PORTAL_TYPE = hasSymbol ? Symbol.for('react.portal') : 0xeaca;
+var REACT_FRAGMENT_TYPE = hasSymbol ? Symbol.for('react.fragment') : 0xeacb;
+var REACT_STRICT_MODE_TYPE = hasSymbol ? Symbol.for('react.strict_mode') : 0xeacc;
+var REACT_PROFILER_TYPE = hasSymbol ? Symbol.for('react.profile_root') : 0xeacc;
+var REACT_PROVIDER_TYPE = hasSymbol ? Symbol.for('react.provider') : 0xeacd;
+var REACT_CONTEXT_TYPE = hasSymbol ? Symbol.for('react.context') : 0xeace;
+var REACT_ASYNC_MODE_TYPE = hasSymbol ? Symbol.for('react.async_mode') : 0xeacf;
+var REACT_FORWARD_REF_TYPE = hasSymbol ? Symbol.for('react.forward_ref') : 0xead0;
 
 // A reserved attribute.
 // It is handled by React separately and shouldn't be written to the DOM.
@@ -496,6 +587,9 @@ function shouldRemoveAttribute(name, value, propertyInfo, isCustomComponentTag) 
   if (shouldRemoveAttributeWithWarning(name, value, propertyInfo, isCustomComponentTag)) {
     return true;
   }
+  if (isCustomComponentTag) {
+    return false;
+  }
   if (propertyInfo !== null) {
     switch (propertyInfo.type) {
       case BOOLEAN:
@@ -538,15 +632,20 @@ var properties = {};
   properties[name] = new PropertyInfoRecord(name, RESERVED, false, // mustUseProperty
   name, // attributeName
   null);
-});
+} // attributeNamespace
+);
 
 // A few React string attributes have a different name.
 // This is a mapping from React prop names to the attribute names.
-new Map([['acceptCharset', 'accept-charset'], ['className', 'class'], ['htmlFor', 'for'], ['httpEquiv', 'http-equiv']]).forEach(function (attributeName, name) {
+[['acceptCharset', 'accept-charset'], ['className', 'class'], ['htmlFor', 'for'], ['httpEquiv', 'http-equiv']].forEach(function (_ref) {
+  var name = _ref[0],
+      attributeName = _ref[1];
+
   properties[name] = new PropertyInfoRecord(name, STRING, false, // mustUseProperty
   attributeName, // attributeName
   null);
-});
+} // attributeNamespace
+);
 
 // These are "enumerated" HTML attributes that accept "true" and "false".
 // In React, we let users pass `true` and `false` even though technically
@@ -555,7 +654,8 @@ new Map([['acceptCharset', 'accept-charset'], ['className', 'class'], ['htmlFor'
   properties[name] = new PropertyInfoRecord(name, BOOLEANISH_STRING, false, // mustUseProperty
   name.toLowerCase(), // attributeName
   null);
-});
+} // attributeNamespace
+);
 
 // These are "enumerated" SVG attributes that accept "true" and "false".
 // In React, we let users pass `true` and `false` even though technically
@@ -565,7 +665,8 @@ new Map([['acceptCharset', 'accept-charset'], ['className', 'class'], ['htmlFor'
   properties[name] = new PropertyInfoRecord(name, BOOLEANISH_STRING, false, // mustUseProperty
   name, // attributeName
   null);
-});
+} // attributeNamespace
+);
 
 // These are HTML boolean attributes.
 ['allowFullScreen', 'async',
@@ -577,7 +678,8 @@ new Map([['acceptCharset', 'accept-charset'], ['className', 'class'], ['htmlFor'
   properties[name] = new PropertyInfoRecord(name, BOOLEAN, false, // mustUseProperty
   name.toLowerCase(), // attributeName
   null);
-});
+} // attributeNamespace
+);
 
 // These are the few React props that we set as DOM properties
 // rather than attributes. These are all booleans.
@@ -588,7 +690,8 @@ new Map([['acceptCharset', 'accept-charset'], ['className', 'class'], ['htmlFor'
   properties[name] = new PropertyInfoRecord(name, BOOLEAN, true, // mustUseProperty
   name.toLowerCase(), // attributeName
   null);
-});
+} // attributeNamespace
+);
 
 // These are HTML attributes that are "overloaded booleans": they behave like
 // booleans, but can also accept a string value.
@@ -596,21 +699,24 @@ new Map([['acceptCharset', 'accept-charset'], ['className', 'class'], ['htmlFor'
   properties[name] = new PropertyInfoRecord(name, OVERLOADED_BOOLEAN, false, // mustUseProperty
   name.toLowerCase(), // attributeName
   null);
-});
+} // attributeNamespace
+);
 
 // These are HTML attributes that must be positive numbers.
 ['cols', 'rows', 'size', 'span'].forEach(function (name) {
   properties[name] = new PropertyInfoRecord(name, POSITIVE_NUMERIC, false, // mustUseProperty
   name.toLowerCase(), // attributeName
   null);
-});
+} // attributeNamespace
+);
 
 // These are HTML attributes that must be numbers.
 ['rowSpan', 'start'].forEach(function (name) {
   properties[name] = new PropertyInfoRecord(name, NUMERIC, false, // mustUseProperty
   name.toLowerCase(), // attributeName
   null);
-});
+} // attributeNamespace
+);
 
 var CAMELIZE = /[\-\:]([a-z])/g;
 var capitalize = function (token) {
@@ -626,7 +732,8 @@ var capitalize = function (token) {
   var name = attributeName.replace(CAMELIZE, capitalize);
   properties[name] = new PropertyInfoRecord(name, STRING, false, // mustUseProperty
   attributeName, null);
-});
+} // attributeNamespace
+);
 
 // String SVG attributes with the xlink namespace.
 ['xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type'].forEach(function (attributeName) {
@@ -894,6 +1001,7 @@ var omittedCloseTags = {
   source: true,
   track: true,
   wbr: true
+  // NOTE: menuitem's close tag should be omitted, but that causes problems.
 };
 
 // For HTML, certain tags cannot have children. This has the same purpose as
@@ -918,7 +1026,7 @@ function assertValidProps(tag, props, getStack) {
     !(typeof props.dangerouslySetInnerHTML === 'object' && HTML in props.dangerouslySetInnerHTML) ? invariant_1(false, '`props.dangerouslySetInnerHTML` must be in the form `{__html: ...}`. Please visit https://fb.me/react-invariant-dangerously-set-inner-html for more information.') : void 0;
   }
   {
-    warning_1(props.suppressContentEditableWarning || !props.contentEditable || props.children == null, 'A component is `contentEditable` and contains `children` managed by ' + 'React. It is now your responsibility to guarantee that none of ' + 'those nodes are unexpectedly modified or duplicated. This is ' + 'probably not intentional.%s', getStack());
+    !(props.suppressContentEditableWarning || !props.contentEditable || props.children == null) ? warning_1(false, 'A component is `contentEditable` and contains `children` managed by ' + 'React. It is now your responsibility to guarantee that none of ' + 'those nodes are unexpectedly modified or duplicated. This is ' + 'probably not intentional.%s', getStack()) : void 0;
   }
   !(props.style == null || typeof props.style === 'object') ? invariant_1(false, 'The `style` prop expects a mapping from style properties to values, not a string. For example, style={{marginRight: spacing + \'em\'}} when using JSX.%s', getStack()) : void 0;
 }
@@ -1359,24 +1467,6 @@ function validateProperties$1(type, props) {
 }
 
 /**
- * Forked from fbjs/warning:
- * https://github.com/facebook/fbjs/blob/e66ba20ad5be433eb54423f2b097d829324d9de6/packages/fbjs/src/__forks__/warning.js
- *
- * Only change is we use console.warn instead of console.error,
- * and do nothing when 'console' is not supported.
- * This really simplifies the code.
- * ---
- * Similar to invariant but only logs a warning if the condition is not met.
- * This can be used to log issues in development environments in critical
- * paths. Removing the logging code for production environments will keep the
- * same logic and follow the same code paths.
- */
-
-{
-  
-}
-
-/**
  * Registers plugins so that they can extract and dispatch events.
  *
  * @see {EventPluginHub}
@@ -1461,7 +1551,7 @@ var possibleStandardNames = {
   checked: 'checked',
   children: 'children',
   cite: 'cite',
-  'class': 'className',
+  class: 'className',
   classid: 'classID',
   classname: 'className',
   cols: 'cols',
@@ -1476,7 +1566,7 @@ var possibleStandardNames = {
   dangerouslysetinnerhtml: 'dangerouslySetInnerHTML',
   data: 'data',
   datetime: 'dateTime',
-  'default': 'default',
+  default: 'default',
   defaultchecked: 'defaultChecked',
   defaultvalue: 'defaultValue',
   defer: 'defer',
@@ -1485,7 +1575,7 @@ var possibleStandardNames = {
   download: 'download',
   draggable: 'draggable',
   enctype: 'encType',
-  'for': 'htmlFor',
+  for: 'htmlFor',
   form: 'form',
   formmethod: 'formMethod',
   formaction: 'formAction',
@@ -1703,7 +1793,7 @@ var possibleStandardNames = {
   imagerendering: 'imageRendering',
   'image-rendering': 'imageRendering',
   in2: 'in2',
-  'in': 'in',
+  in: 'in',
   inlist: 'inlist',
   intercept: 'intercept',
   k1: 'k1',
@@ -1843,7 +1933,7 @@ var possibleStandardNames = {
   'text-rendering': 'textRendering',
   to: 'to',
   transform: 'transform',
-  'typeof': 'typeof',
+  typeof: 'typeof',
   u1: 'u1',
   u2: 'u2',
   underlineposition: 'underlinePosition',
@@ -2152,6 +2242,9 @@ var didWarnDefaultTextareaValue = false;
 var didWarnInvalidOptionChildren = false;
 var didWarnAboutNoopUpdateForComponent = {};
 var didWarnAboutBadClass = {};
+var didWarnAboutDeprecatedWillMount = {};
+var didWarnAboutUndefinedDerivedState = {};
+var didWarnAboutUninitializedState = {};
 var valuePropNames = ['value', 'defaultValue'];
 var newlineEatingTags = {
   listing: true,
@@ -2356,42 +2449,26 @@ function validateRenderResult(child, type) {
 }
 
 function resolve(child, context) {
-  var element = void 0;
-
-  var Component = void 0;
-  var publicContext = void 0;
-  var inst = void 0,
-      queue = void 0,
-      replace = void 0;
-  var updater = void 0;
-
-  var initialState = void 0;
-  var oldQueue = void 0,
-      oldReplace = void 0;
-  var nextState = void 0,
-      dontMutate = void 0;
-  var partial = void 0,
-      partialState = void 0;
-
-  var childContext = void 0;
-  var childContextTypes = void 0,
-      contextKey = void 0;
-
   while (React.isValidElement(child)) {
     // Safe because we just checked it's an element.
-    element = child;
+    var element = child;
+    var Component = element.type;
     {
       pushElementToDebugStack(element);
     }
-    Component = element.type;
     if (typeof Component !== 'function') {
       break;
     }
-    publicContext = processContext(Component, context);
+    processChild(element, Component);
+  }
 
-    queue = [];
-    replace = false;
-    updater = {
+  // Extra closure so queue and replace can be captured properly
+  function processChild(element, Component) {
+    var publicContext = processContext(Component, context);
+
+    var queue = [];
+    var replace = false;
+    var updater = {
       isMounted: function (publicInstance) {
         return false;
       },
@@ -2414,16 +2491,45 @@ function resolve(child, context) {
       }
     };
 
+    var inst = void 0;
     if (shouldConstruct(Component)) {
       inst = new Component(element.props, publicContext, updater);
+
+      if (typeof Component.getDerivedStateFromProps === 'function') {
+        {
+          if (inst.state === null || inst.state === undefined) {
+            var componentName = getComponentName(Component) || 'Unknown';
+            if (!didWarnAboutUninitializedState[componentName]) {
+              warning_1(false, '%s: Did not properly initialize state during construction. ' + 'Expected state to be an object, but it was %s.', componentName, inst.state === null ? 'null' : 'undefined');
+              didWarnAboutUninitializedState[componentName] = true;
+            }
+          }
+        }
+
+        var partialState = Component.getDerivedStateFromProps.call(null, element.props, inst.state);
+
+        {
+          if (partialState === undefined) {
+            var _componentName = getComponentName(Component) || 'Unknown';
+            if (!didWarnAboutUndefinedDerivedState[_componentName]) {
+              warning_1(false, '%s.getDerivedStateFromProps(): A valid state object (or null) must be returned. ' + 'You have returned undefined.', _componentName);
+              didWarnAboutUndefinedDerivedState[_componentName] = true;
+            }
+          }
+        }
+
+        if (partialState != null) {
+          inst.state = _assign({}, inst.state, partialState);
+        }
+      }
     } else {
       {
         if (Component.prototype && typeof Component.prototype.render === 'function') {
-          var componentName = getComponentName(Component) || 'Unknown';
+          var _componentName2 = getComponentName(Component) || 'Unknown';
 
-          if (!didWarnAboutBadClass[componentName]) {
-            warning_1(false, "The <%s /> component appears to have a render method, but doesn't extend React.Component. " + 'This is likely to cause errors. Change %s to extend React.Component instead.', componentName, componentName);
-            didWarnAboutBadClass[componentName] = true;
+          if (!didWarnAboutBadClass[_componentName2]) {
+            warning_1(false, "The <%s /> component appears to have a render method, but doesn't extend React.Component. " + 'This is likely to cause errors. Change %s to extend React.Component instead.', _componentName2, _componentName2);
+            didWarnAboutBadClass[_componentName2] = true;
           }
         }
       }
@@ -2431,7 +2537,7 @@ function resolve(child, context) {
       if (inst == null || inst.render == null) {
         child = inst;
         validateRenderResult(child, Component);
-        continue;
+        return;
       }
     }
 
@@ -2439,32 +2545,54 @@ function resolve(child, context) {
     inst.context = publicContext;
     inst.updater = updater;
 
-    initialState = inst.state;
+    var initialState = inst.state;
     if (initialState === undefined) {
       inst.state = initialState = null;
     }
-    if (inst.componentWillMount) {
-      inst.componentWillMount();
+    if (typeof inst.UNSAFE_componentWillMount === 'function' || typeof inst.componentWillMount === 'function') {
+      if (typeof inst.componentWillMount === 'function') {
+        {
+          if (warnAboutDeprecatedLifecycles && inst.componentWillMount.__suppressDeprecationWarning !== true) {
+            var _componentName3 = getComponentName(Component) || 'Unknown';
+
+            if (!didWarnAboutDeprecatedWillMount[_componentName3]) {
+              lowPriorityWarning$1(false, '%s: componentWillMount() is deprecated and will be ' + 'removed in the next major version. Read about the motivations ' + 'behind this change: ' + 'https://fb.me/react-async-component-lifecycle-hooks' + '\n\n' + 'As a temporary workaround, you can rename to ' + 'UNSAFE_componentWillMount instead.', _componentName3);
+              didWarnAboutDeprecatedWillMount[_componentName3] = true;
+            }
+          }
+        }
+
+        // In order to support react-lifecycles-compat polyfilled components,
+        // Unsafe lifecycles should not be invoked for any component with the new gDSFP.
+        if (typeof Component.getDerivedStateFromProps !== 'function') {
+          inst.componentWillMount();
+        }
+      }
+      if (typeof inst.UNSAFE_componentWillMount === 'function' && typeof Component.getDerivedStateFromProps !== 'function') {
+        // In order to support react-lifecycles-compat polyfilled components,
+        // Unsafe lifecycles should not be invoked for any component with the new gDSFP.
+        inst.UNSAFE_componentWillMount();
+      }
       if (queue.length) {
-        oldQueue = queue;
-        oldReplace = replace;
+        var oldQueue = queue;
+        var oldReplace = replace;
         queue = null;
         replace = false;
 
         if (oldReplace && oldQueue.length === 1) {
           inst.state = oldQueue[0];
         } else {
-          nextState = oldReplace ? oldQueue[0] : inst.state;
-          dontMutate = true;
+          var nextState = oldReplace ? oldQueue[0] : inst.state;
+          var dontMutate = true;
           for (var i = oldReplace ? 1 : 0; i < oldQueue.length; i++) {
-            partial = oldQueue[i];
-            partialState = typeof partial === 'function' ? partial.call(inst, nextState, element.props, publicContext) : partial;
-            if (partialState) {
+            var partial = oldQueue[i];
+            var _partialState = typeof partial === 'function' ? partial.call(inst, nextState, element.props, publicContext) : partial;
+            if (_partialState != null) {
               if (dontMutate) {
                 dontMutate = false;
-                nextState = _assign({}, nextState, partialState);
+                nextState = _assign({}, nextState, _partialState);
               } else {
-                _assign(nextState, partialState);
+                _assign(nextState, _partialState);
               }
             }
           }
@@ -2485,11 +2613,12 @@ function resolve(child, context) {
     }
     validateRenderResult(child, Component);
 
+    var childContext = void 0;
     if (typeof inst.getChildContext === 'function') {
-      childContextTypes = Component.childContextTypes;
+      var childContextTypes = Component.childContextTypes;
       if (typeof childContextTypes === 'object') {
         childContext = inst.getChildContext();
-        for (contextKey in childContext) {
+        for (var contextKey in childContext) {
           !(contextKey in childContextTypes) ? invariant_1(false, '%s.getChildContext(): key "%s" is not defined in childContextTypes.', getComponentName(Component) || 'Unknown', contextKey) : void 0;
         }
       } else {
@@ -2510,6 +2639,7 @@ var ReactDOMServerRenderer = function () {
     var flatChildren = flattenTopLevelChildren(children);
 
     var topFrame = {
+      type: null,
       // Assume all trees start in the HTML namespace (not totally true, but
       // this is what we did historically)
       domNamespace: Namespaces.html,
@@ -2526,9 +2656,36 @@ var ReactDOMServerRenderer = function () {
     this.currentSelectValue = null;
     this.previousWasTextNode = false;
     this.makeStaticMarkup = makeStaticMarkup;
+
+    // Context (new API)
+    this.providerStack = []; // Stack of provider objects
+    this.providerIndex = -1;
   }
   // TODO: type this more strictly:
 
+
+  ReactDOMServerRenderer.prototype.pushProvider = function pushProvider(provider) {
+    this.providerIndex += 1;
+    this.providerStack[this.providerIndex] = provider;
+    var context = provider.type._context;
+    context._currentValue = provider.props.value;
+  };
+
+  ReactDOMServerRenderer.prototype.popProvider = function popProvider(provider) {
+    {
+      !(this.providerIndex > -1 && provider === this.providerStack[this.providerIndex]) ? warning_1(false, 'Unexpected pop.') : void 0;
+    }
+    this.providerStack[this.providerIndex] = null;
+    this.providerIndex -= 1;
+    var context = provider.type._context;
+    if (this.providerIndex < 0) {
+      context._currentValue = context._defaultValue;
+    } else {
+      // We assume this type is correct because of the index check above.
+      var previousProvider = this.providerStack[this.providerIndex];
+      context._currentValue = previousProvider.props.value;
+    }
+  };
 
   ReactDOMServerRenderer.prototype.read = function read(bytes) {
     if (this.exhausted) {
@@ -2549,8 +2706,11 @@ var ReactDOMServerRenderer = function () {
           this.previousWasTextNode = false;
         }
         this.stack.pop();
-        if (frame.tag === 'select') {
+        if (frame.type === 'select') {
           this.currentSelectValue = null;
+        } else if (frame.type != null && frame.type.type != null && frame.type.type.$$typeof === REACT_PROVIDER_TYPE) {
+          var provider = frame.type;
+          this.popProvider(provider);
         }
         continue;
       }
@@ -2601,6 +2761,7 @@ var ReactDOMServerRenderer = function () {
         }
         var nextChildren = toArray(nextChild);
         var frame = {
+          type: null,
           domNamespace: parentNamespace,
           children: nextChildren,
           childIndex: 0,
@@ -2616,28 +2777,116 @@ var ReactDOMServerRenderer = function () {
       // Safe because we just checked it's an element.
       var nextElement = nextChild;
       var elementType = nextElement.type;
+
+      if (typeof elementType === 'string') {
+        return this.renderDOM(nextElement, context, parentNamespace);
+      }
+
       switch (elementType) {
+        case REACT_STRICT_MODE_TYPE:
+        case REACT_ASYNC_MODE_TYPE:
+        case REACT_PROFILER_TYPE:
         case REACT_FRAGMENT_TYPE:
-          var _nextChildren = toArray(nextChild.props.children);
-          var _frame = {
-            domNamespace: parentNamespace,
-            children: _nextChildren,
-            childIndex: 0,
-            context: context,
-            footer: ''
-          };
           {
-            _frame.debugElementStack = [];
+            var _nextChildren = toArray(nextChild.props.children);
+            var _frame = {
+              type: null,
+              domNamespace: parentNamespace,
+              children: _nextChildren,
+              childIndex: 0,
+              context: context,
+              footer: ''
+            };
+            {
+              _frame.debugElementStack = [];
+            }
+            this.stack.push(_frame);
+            return '';
           }
-          this.stack.push(_frame);
-          return '';
-        case REACT_CALL_TYPE:
-        case REACT_RETURN_TYPE:
-          invariant_1(false, 'The experimental Call and Return types are not currently supported by the server renderer.');
         // eslint-disable-next-line-no-fallthrough
         default:
-          return this.renderDOM(nextElement, context, parentNamespace);
+          break;
       }
+      if (typeof elementType === 'object' && elementType !== null) {
+        switch (elementType.$$typeof) {
+          case REACT_FORWARD_REF_TYPE:
+            {
+              var element = nextChild;
+              var _nextChildren2 = toArray(elementType.render(element.props, element.ref));
+              var _frame2 = {
+                type: null,
+                domNamespace: parentNamespace,
+                children: _nextChildren2,
+                childIndex: 0,
+                context: context,
+                footer: ''
+              };
+              {
+                _frame2.debugElementStack = [];
+              }
+              this.stack.push(_frame2);
+              return '';
+            }
+          case REACT_PROVIDER_TYPE:
+            {
+              var provider = nextChild;
+              var nextProps = provider.props;
+              var _nextChildren3 = toArray(nextProps.children);
+              var _frame3 = {
+                type: provider,
+                domNamespace: parentNamespace,
+                children: _nextChildren3,
+                childIndex: 0,
+                context: context,
+                footer: ''
+              };
+              {
+                _frame3.debugElementStack = [];
+              }
+
+              this.pushProvider(provider);
+
+              this.stack.push(_frame3);
+              return '';
+            }
+          case REACT_CONTEXT_TYPE:
+            {
+              var consumer = nextChild;
+              var _nextProps = consumer.props;
+              var nextValue = consumer.type._currentValue;
+
+              var _nextChildren4 = toArray(_nextProps.children(nextValue));
+              var _frame4 = {
+                type: nextChild,
+                domNamespace: parentNamespace,
+                children: _nextChildren4,
+                childIndex: 0,
+                context: context,
+                footer: ''
+              };
+              {
+                _frame4.debugElementStack = [];
+              }
+              this.stack.push(_frame4);
+              return '';
+            }
+          default:
+            break;
+        }
+      }
+
+      var info = '';
+      {
+        var owner = nextElement._owner;
+        if (elementType === undefined || typeof elementType === 'object' && elementType !== null && Object.keys(elementType).length === 0) {
+          info += ' You likely forgot to export your component from the file ' + "it's defined in, or you might have mixed up default and " + 'named imports.';
+        }
+        var ownerName = owner ? getComponentName(owner) : null;
+        if (ownerName) {
+          info += '\n\nCheck the render method of `' + ownerName + '`.';
+        }
+      }
+      invariant_1(false, 'Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: %s.%s', elementType == null ? elementType : typeof elementType, info);
     }
   };
 
@@ -2653,7 +2902,7 @@ var ReactDOMServerRenderer = function () {
       if (namespace === Namespaces.html) {
         // Should this check be gated by parent namespace? Not sure we want to
         // allow <SVG> or <mATH>.
-        warning_1(tag === element.type, '<%s /> is using uppercase HTML. Always use lowercase HTML tags ' + 'in React.', element.type);
+        !(tag === element.type) ? warning_1(false, '<%s /> is using incorrect casing. ' + 'Use PascalCase for React components, ' + 'or lowercase for HTML elements.', element.type) : void 0;
       }
     }
 
@@ -2729,9 +2978,11 @@ var ReactDOMServerRenderer = function () {
           }
           var isArray = Array.isArray(props[propName]);
           if (props.multiple && !isArray) {
-            warning_1(false, 'The `%s` prop supplied to <select> must be an array if ' + '`multiple` is true.%s', propName, '');
+            warning_1(false, 'The `%s` prop supplied to <select> must be an array if ' + '`multiple` is true.%s', propName, '' // getDeclarationErrorAddendum(),
+            );
           } else if (!props.multiple && isArray) {
-            warning_1(false, 'The `%s` prop supplied to <select> must be a scalar ' + 'value if `multiple` is false.%s', propName, '');
+            warning_1(false, 'The `%s` prop supplied to <select> must be a scalar ' + 'value if `multiple` is false.%s', propName, '' // getDeclarationErrorAddendum(),
+            );
           }
         }
 
@@ -2815,7 +3066,7 @@ var ReactDOMServerRenderer = function () {
     }
     var frame = {
       domNamespace: getChildNamespace(parentNamespace, element.type),
-      tag: tag,
+      type: tag,
       children: children,
       childIndex: 0,
       context: context,
@@ -2879,7 +3130,7 @@ var ReactDOMServer = ( ReactDOMServerBrowser$1 && ReactDOMServerBrowser ) || Rea
 
 // TODO: decide on the top-level export form.
 // This is hacky but makes it work with both Rollup and Jest
-var server_browser = ReactDOMServer['default'] ? ReactDOMServer['default'] : ReactDOMServer;
+var server_browser = ReactDOMServer.default ? ReactDOMServer.default : ReactDOMServer;
 
 return server_browser;
 
