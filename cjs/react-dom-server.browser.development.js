@@ -1,4 +1,4 @@
-/** @license React v16.3.2
+/** @license React v16.4.1
  * react-dom-server.browser.development.js
  *
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -15,23 +15,164 @@ if (process.env.NODE_ENV !== "production") {
   (function() {
 'use strict';
 
-var invariant = require('fbjs/lib/invariant');
 var _assign = require('object-assign');
 var React = require('react');
-var emptyFunction = require('fbjs/lib/emptyFunction');
-var emptyObject = require('fbjs/lib/emptyObject');
-var hyphenateStyleName = require('fbjs/lib/hyphenateStyleName');
-var memoizeStringOnly = require('fbjs/lib/memoizeStringOnly');
-var warning = require('fbjs/lib/warning');
 var checkPropTypes = require('prop-types/checkPropTypes');
-var camelizeStyleName = require('fbjs/lib/camelizeStyleName');
+
+/**
+ * Use invariant() to assert state which your program assumes to be true.
+ *
+ * Provide sprintf-style format (only %s is supported) and arguments
+ * to provide information about what broke and what you were
+ * expecting.
+ *
+ * The invariant message will be stripped in production, but the invariant
+ * will remain to ensure logic does not differ in production.
+ */
+
+var validateFormat = function () {};
+
+{
+  validateFormat = function (format) {
+    if (format === undefined) {
+      throw new Error('invariant requires an error message argument');
+    }
+  };
+}
+
+function invariant(condition, format, a, b, c, d, e, f) {
+  validateFormat(format);
+
+  if (!condition) {
+    var error = void 0;
+    if (format === undefined) {
+      error = new Error('Minified exception occurred; use the non-minified dev environment ' + 'for the full error message and additional helpful warnings.');
+    } else {
+      var args = [a, b, c, d, e, f];
+      var argIndex = 0;
+      error = new Error(format.replace(/%s/g, function () {
+        return args[argIndex++];
+      }));
+      error.name = 'Invariant Violation';
+    }
+
+    error.framesToPop = 1; // we don't care about invariant's own frame
+    throw error;
+  }
+}
 
 // Relying on the `invariant()` implementation lets us
 // have preserve the format and params in the www builds.
 
 // TODO: this is special because it gets imported during build.
 
-var ReactVersion = '16.3.2';
+var ReactVersion = '16.4.1';
+
+/**
+ * Similar to invariant but only logs a warning if the condition is not met.
+ * This can be used to log issues in development environments in critical
+ * paths. Removing the logging code for production environments will keep the
+ * same logic and follow the same code paths.
+ */
+
+var warning = function () {};
+
+{
+  var printWarning = function (format) {
+    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      args[_key - 1] = arguments[_key];
+    }
+
+    var argIndex = 0;
+    var message = 'Warning: ' + format.replace(/%s/g, function () {
+      return args[argIndex++];
+    });
+    if (typeof console !== 'undefined') {
+      console.error(message);
+    }
+    try {
+      // --- Welcome to debugging React ---
+      // This error was thrown as a convenience so that you can use this stack
+      // to find the callsite that caused this warning to fire.
+      throw new Error(message);
+    } catch (x) {}
+  };
+
+  warning = function (condition, format) {
+    if (format === undefined) {
+      throw new Error('`warning(condition, format, ...args)` requires a warning ' + 'message argument');
+    }
+    if (!condition) {
+      for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+        args[_key2 - 2] = arguments[_key2];
+      }
+
+      printWarning.apply(undefined, [format].concat(args));
+    }
+  };
+}
+
+var warning$1 = warning;
+
+// The Symbol used to tag the ReactElement-like types. If there is no native Symbol
+// nor polyfill, then a plain number is used for performance.
+var hasSymbol = typeof Symbol === 'function' && Symbol.for;
+
+
+var REACT_PORTAL_TYPE = hasSymbol ? Symbol.for('react.portal') : 0xeaca;
+var REACT_FRAGMENT_TYPE = hasSymbol ? Symbol.for('react.fragment') : 0xeacb;
+var REACT_STRICT_MODE_TYPE = hasSymbol ? Symbol.for('react.strict_mode') : 0xeacc;
+var REACT_PROFILER_TYPE = hasSymbol ? Symbol.for('react.profiler') : 0xead2;
+var REACT_PROVIDER_TYPE = hasSymbol ? Symbol.for('react.provider') : 0xeacd;
+var REACT_CONTEXT_TYPE = hasSymbol ? Symbol.for('react.context') : 0xeace;
+var REACT_ASYNC_MODE_TYPE = hasSymbol ? Symbol.for('react.async_mode') : 0xeacf;
+var REACT_FORWARD_REF_TYPE = hasSymbol ? Symbol.for('react.forward_ref') : 0xead0;
+var REACT_PLACEHOLDER_TYPE = hasSymbol ? Symbol.for('react.placeholder') : 0xead1;
+
+function getComponentName(type) {
+  if (type == null) {
+    // Host root, text node or just invalid type.
+    return null;
+  }
+  {
+    if (typeof type.tag === 'number') {
+      warning$1(false, 'Received an unexpected object in getComponentName(). ' + 'This is likely a bug in React. Please file an issue.');
+    }
+  }
+  if (typeof type === 'function') {
+    return type.displayName || type.name || null;
+  }
+  if (typeof type === 'string') {
+    return type;
+  }
+  switch (type) {
+    case REACT_ASYNC_MODE_TYPE:
+      return 'AsyncMode';
+    case REACT_FRAGMENT_TYPE:
+      return 'Fragment';
+    case REACT_PORTAL_TYPE:
+      return 'Portal';
+    case REACT_PROFILER_TYPE:
+      return 'Profiler';
+    case REACT_STRICT_MODE_TYPE:
+      return 'StrictMode';
+    case REACT_PLACEHOLDER_TYPE:
+      return 'Placeholder';
+  }
+  if (typeof type === 'object') {
+    switch (type.$$typeof) {
+      case REACT_CONTEXT_TYPE:
+        return 'Context.Consumer';
+      case REACT_PROVIDER_TYPE:
+        return 'Context.Provider';
+      case REACT_FORWARD_REF_TYPE:
+        var renderFn = type.render;
+        var functionName = renderFn.displayName || renderFn.name || '';
+        return functionName !== '' ? 'ForwardRef(' + functionName + ')' : 'ForwardRef';
+    }
+  }
+  return null;
+}
 
 /**
  * Forked from fbjs/warning:
@@ -50,7 +191,7 @@ var ReactVersion = '16.3.2';
 var lowPriorityWarning = function () {};
 
 {
-  var printWarning = function (format) {
+  var printWarning$1 = function (format) {
     for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
       args[_key - 1] = arguments[_key];
     }
@@ -79,7 +220,7 @@ var lowPriorityWarning = function () {};
         args[_key2 - 2] = arguments[_key2];
       }
 
-      printWarning.apply(undefined, [format].concat(args));
+      printWarning$1.apply(undefined, [format].concat(args));
     }
   };
 }
@@ -90,19 +231,10 @@ var describeComponentFrame = function (name, source, ownerName) {
   return '\n    in ' + (name || 'Unknown') + (source ? ' (at ' + source.fileName.replace(/^.*[\\\/]/, '') + ':' + source.lineNumber + ')' : ownerName ? ' (created by ' + ownerName + ')' : '');
 };
 
-var ReactInternals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-
-var ReactCurrentOwner = ReactInternals.ReactCurrentOwner;
-var ReactDebugCurrentFrame = ReactInternals.ReactDebugCurrentFrame;
+var ReactSharedInternals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 
 // Exports ReactDOM.createRoot
 
-
-// Mutating mode (React DOM, React ART, React Native):
-
-// Experimental noop mode (currently unused):
-
-// Experimental persistent mode (Fabric):
 
 // Experimental error-boundary API that can recover from errors within a single
 // render phase
@@ -125,27 +257,13 @@ var ReactDebugCurrentFrame = ReactInternals.ReactDebugCurrentFrame;
 // Warn about deprecated, async-unsafe lifecycles; relates to RFC #6:
 var warnAboutDeprecatedLifecycles = false;
 
+// Warn about legacy context API
+
+
 // Gather advanced timing metrics for Profiler subtrees.
 
 
-// Fires getDerivedStateFromProps for state *or* props changes
-
-
 // Only used in www builds.
-
-// The Symbol used to tag the ReactElement-like types. If there is no native Symbol
-// nor polyfill, then a plain number is used for performance.
-var hasSymbol = typeof Symbol === 'function' && Symbol.for;
-
-
-var REACT_PORTAL_TYPE = hasSymbol ? Symbol.for('react.portal') : 0xeaca;
-var REACT_FRAGMENT_TYPE = hasSymbol ? Symbol.for('react.fragment') : 0xeacb;
-var REACT_STRICT_MODE_TYPE = hasSymbol ? Symbol.for('react.strict_mode') : 0xeacc;
-var REACT_PROFILER_TYPE = hasSymbol ? Symbol.for('react.profile_root') : 0xeacc;
-var REACT_PROVIDER_TYPE = hasSymbol ? Symbol.for('react.provider') : 0xeacd;
-var REACT_CONTEXT_TYPE = hasSymbol ? Symbol.for('react.context') : 0xeace;
-var REACT_ASYNC_MODE_TYPE = hasSymbol ? Symbol.for('react.async_mode') : 0xeacf;
-var REACT_FORWARD_REF_TYPE = hasSymbol ? Symbol.for('react.forward_ref') : 0xead0;
 
 // A reserved attribute.
 // It is handled by React separately and shouldn't be written to the DOM.
@@ -205,7 +323,7 @@ function isAttributeNameSafe(attributeName) {
   }
   illegalAttributeNameCache[attributeName] = true;
   {
-    warning(false, 'Invalid attribute name: `%s`', attributeName);
+    warning$1(false, 'Invalid attribute name: `%s`', attributeName);
   }
   return false;
 }
@@ -696,7 +814,7 @@ function assertValidProps(tag, props, getStack) {
     !(typeof props.dangerouslySetInnerHTML === 'object' && HTML in props.dangerouslySetInnerHTML) ? invariant(false, '`props.dangerouslySetInnerHTML` must be in the form `{__html: ...}`. Please visit https://fb.me/react-invariant-dangerously-set-inner-html for more information.') : void 0;
   }
   {
-    !(props.suppressContentEditableWarning || !props.contentEditable || props.children == null) ? warning(false, 'A component is `contentEditable` and contains `children` managed by ' + 'React. It is now your responsibility to guarantee that none of ' + 'those nodes are unexpectedly modified or duplicated. This is ' + 'probably not intentional.%s', getStack()) : void 0;
+    !(props.suppressContentEditableWarning || !props.contentEditable || props.children == null) ? warning$1(false, 'A component is `contentEditable` and contains `children` managed by ' + 'React. It is now your responsibility to guarantee that none of ' + 'those nodes are unexpectedly modified or duplicated. This is ' + 'probably not intentional.%s', getStack()) : void 0;
   }
   !(props.style == null || typeof props.style === 'object') ? invariant(false, 'The `style` prop expects a mapping from style properties to values, not a string. For example, style={{marginRight: spacing + \'em\'}} when using JSX.%s', getStack()) : void 0;
 }
@@ -806,6 +924,26 @@ function dangerousStyleValue(name, value, isCustomProperty) {
   return ('' + value).trim();
 }
 
+var uppercasePattern = /([A-Z])/g;
+var msPattern = /^ms-/;
+
+/**
+ * Hyphenates a camelcased CSS property name, for example:
+ *
+ *   > hyphenateStyleName('backgroundColor')
+ *   < "background-color"
+ *   > hyphenateStyleName('MozTransition')
+ *   < "-moz-transition"
+ *   > hyphenateStyleName('msTransition')
+ *   < "-ms-transition"
+ *
+ * As Modernizr suggests (http://modernizr.com/docs/#prefixed), an `ms` prefix
+ * is converted to `-ms-`.
+ */
+function hyphenateStyleName(name) {
+  return name.replace(uppercasePattern, '-$1').toLowerCase().replace(msPattern, '-ms-');
+}
+
 function isCustomComponent(tagName, props) {
   if (tagName.indexOf('-') === -1) {
     return typeof props.is === 'string';
@@ -829,11 +967,13 @@ function isCustomComponent(tagName, props) {
   }
 }
 
-var warnValidStyle = emptyFunction;
+var warnValidStyle = function () {};
 
 {
   // 'msTransform' is correct, but the other prefixes should be capitalized
   var badVendoredStyleNamePattern = /^(?:webkit|moz|o)[A-Z]/;
+  var msPattern$1 = /^-ms-/;
+  var hyphenPattern = /-(.)/g;
 
   // style values shouldn't contain a semicolon
   var badStyleValueWithSemicolonPattern = /;\s*$/;
@@ -843,13 +983,23 @@ var warnValidStyle = emptyFunction;
   var warnedForNaNValue = false;
   var warnedForInfinityValue = false;
 
+  var camelize = function (string) {
+    return string.replace(hyphenPattern, function (_, character) {
+      return character.toUpperCase();
+    });
+  };
+
   var warnHyphenatedStyleName = function (name, getStack) {
     if (warnedStyleNames.hasOwnProperty(name) && warnedStyleNames[name]) {
       return;
     }
 
     warnedStyleNames[name] = true;
-    warning(false, 'Unsupported style property %s. Did you mean %s?%s', name, camelizeStyleName(name), getStack());
+    warning$1(false, 'Unsupported style property %s. Did you mean %s?%s', name,
+    // As Andi Smith suggests
+    // (http://www.andismith.com/blog/2012/02/modernizr-prefixed/), an `-ms` prefix
+    // is converted to lowercase `ms`.
+    camelize(name.replace(msPattern$1, 'ms-')), getStack());
   };
 
   var warnBadVendoredStyleName = function (name, getStack) {
@@ -858,7 +1008,7 @@ var warnValidStyle = emptyFunction;
     }
 
     warnedStyleNames[name] = true;
-    warning(false, 'Unsupported vendor-prefixed style property %s. Did you mean %s?%s', name, name.charAt(0).toUpperCase() + name.slice(1), getStack());
+    warning$1(false, 'Unsupported vendor-prefixed style property %s. Did you mean %s?%s', name, name.charAt(0).toUpperCase() + name.slice(1), getStack());
   };
 
   var warnStyleValueWithSemicolon = function (name, value, getStack) {
@@ -867,7 +1017,7 @@ var warnValidStyle = emptyFunction;
     }
 
     warnedStyleValues[value] = true;
-    warning(false, "Style property values shouldn't contain a semicolon. " + 'Try "%s: %s" instead.%s', name, value.replace(badStyleValueWithSemicolonPattern, ''), getStack());
+    warning$1(false, "Style property values shouldn't contain a semicolon. " + 'Try "%s: %s" instead.%s', name, value.replace(badStyleValueWithSemicolonPattern, ''), getStack());
   };
 
   var warnStyleValueIsNaN = function (name, value, getStack) {
@@ -876,7 +1026,7 @@ var warnValidStyle = emptyFunction;
     }
 
     warnedForNaNValue = true;
-    warning(false, '`NaN` is an invalid value for the `%s` css style property.%s', name, getStack());
+    warning$1(false, '`NaN` is an invalid value for the `%s` css style property.%s', name, getStack());
   };
 
   var warnStyleValueIsInfinity = function (name, value, getStack) {
@@ -885,7 +1035,7 @@ var warnValidStyle = emptyFunction;
     }
 
     warnedForInfinityValue = true;
-    warning(false, '`Infinity` is an invalid value for the `%s` css style property.%s', name, getStack());
+    warning$1(false, '`Infinity` is an invalid value for the `%s` css style property.%s', name, getStack());
   };
 
   warnValidStyle = function (name, value, getStack) {
@@ -964,16 +1114,13 @@ var ariaProperties = {
   'aria-setsize': 0
 };
 
+var ReactDebugCurrentFrame$1 = ReactSharedInternals.ReactDebugCurrentFrame;
+
 var warnedProperties = {};
 var rARIA = new RegExp('^(aria)-[' + ATTRIBUTE_NAME_CHAR + ']*$');
 var rARIACamel = new RegExp('^(aria)[A-Z][' + ATTRIBUTE_NAME_CHAR + ']*$');
 
 var hasOwnProperty = Object.prototype.hasOwnProperty;
-
-function getStackAddendum$1() {
-  var stack = ReactDebugCurrentFrame.getStackAddendum();
-  return stack != null ? stack : '';
-}
 
 function validateProperty(tagName, name) {
   if (hasOwnProperty.call(warnedProperties, name) && warnedProperties[name]) {
@@ -987,13 +1134,13 @@ function validateProperty(tagName, name) {
     // If this is an aria-* attribute, but is not listed in the known DOM
     // DOM properties, then it is an invalid aria-* attribute.
     if (correctName == null) {
-      warning(false, 'Invalid ARIA attribute `%s`. ARIA attributes follow the pattern aria-* and must be lowercase.%s', name, getStackAddendum$1());
+      warning$1(false, 'Invalid ARIA attribute `%s`. ARIA attributes follow the pattern aria-* and must be lowercase.%s', name, ReactDebugCurrentFrame$1.getStackAddendum());
       warnedProperties[name] = true;
       return true;
     }
     // aria-* attributes should be lowercase; suggest the lowercase version.
     if (name !== correctName) {
-      warning(false, 'Invalid ARIA attribute `%s`. Did you mean `%s`?%s', name, correctName, getStackAddendum$1());
+      warning$1(false, 'Invalid ARIA attribute `%s`. Did you mean `%s`?%s', name, correctName, ReactDebugCurrentFrame$1.getStackAddendum());
       warnedProperties[name] = true;
       return true;
     }
@@ -1011,7 +1158,7 @@ function validateProperty(tagName, name) {
     }
     // aria-* attributes should be lowercase; suggest the lowercase version.
     if (name !== standardName) {
-      warning(false, 'Unknown ARIA attribute `%s`. Did you mean `%s`?%s', name, standardName, getStackAddendum$1());
+      warning$1(false, 'Unknown ARIA attribute `%s`. Did you mean `%s`?%s', name, standardName, ReactDebugCurrentFrame$1.getStackAddendum());
       warnedProperties[name] = true;
       return true;
     }
@@ -1035,9 +1182,9 @@ function warnInvalidARIAProps(type, props) {
   }).join(', ');
 
   if (invalidProps.length === 1) {
-    warning(false, 'Invalid aria prop %s on <%s> tag. ' + 'For details, see https://fb.me/invalid-aria-prop%s', unknownPropString, type, getStackAddendum$1());
+    warning$1(false, 'Invalid aria prop %s on <%s> tag. ' + 'For details, see https://fb.me/invalid-aria-prop%s', unknownPropString, type, ReactDebugCurrentFrame$1.getStackAddendum());
   } else if (invalidProps.length > 1) {
-    warning(false, 'Invalid aria props %s on <%s> tag. ' + 'For details, see https://fb.me/invalid-aria-prop%s', unknownPropString, type, getStackAddendum$1());
+    warning$1(false, 'Invalid aria props %s on <%s> tag. ' + 'For details, see https://fb.me/invalid-aria-prop%s', unknownPropString, type, ReactDebugCurrentFrame$1.getStackAddendum());
   }
 }
 
@@ -1048,12 +1195,9 @@ function validateProperties(type, props) {
   warnInvalidARIAProps(type, props);
 }
 
-var didWarnValueNull = false;
+var ReactDebugCurrentFrame$2 = ReactSharedInternals.ReactDebugCurrentFrame;
 
-function getStackAddendum$2() {
-  var stack = ReactDebugCurrentFrame.getStackAddendum();
-  return stack != null ? stack : '';
-}
+var didWarnValueNull = false;
 
 function validateProperties$1(type, props) {
   if (type !== 'input' && type !== 'textarea' && type !== 'select') {
@@ -1063,9 +1207,9 @@ function validateProperties$1(type, props) {
   if (props != null && props.value === null && !didWarnValueNull) {
     didWarnValueNull = true;
     if (type === 'select' && props.multiple) {
-      warning(false, '`value` prop on `%s` should not be null. ' + 'Consider using an empty array when `multiple` is set to `true` ' + 'to clear the component or `undefined` for uncontrolled components.%s', type, getStackAddendum$2());
+      warning$1(false, '`value` prop on `%s` should not be null. ' + 'Consider using an empty array when `multiple` is set to `true` ' + 'to clear the component or `undefined` for uncontrolled components.%s', type, ReactDebugCurrentFrame$2.getStackAddendum());
     } else {
-      warning(false, '`value` prop on `%s` should not be null. ' + 'Consider using an empty string to clear the component or `undefined` ' + 'for uncontrolled components.%s', type, getStackAddendum$2());
+      warning$1(false, '`value` prop on `%s` should not be null. ' + 'Consider using an empty string to clear the component or `undefined` ' + 'for uncontrolled components.%s', type, ReactDebugCurrentFrame$2.getStackAddendum());
     }
   }
 }
@@ -1616,14 +1760,13 @@ var possibleStandardNames = {
   zoomandpan: 'zoomAndPan'
 };
 
-function getStackAddendum$3() {
-  var stack = ReactDebugCurrentFrame.getStackAddendum();
-  return stack != null ? stack : '';
-}
+var ReactDebugCurrentFrame$3 = null;
 
 var validateProperty$1 = function () {};
 
 {
+  ReactDebugCurrentFrame$3 = ReactSharedInternals.ReactDebugCurrentFrame;
+
   var warnedProperties$1 = {};
   var _hasOwnProperty = Object.prototype.hasOwnProperty;
   var EVENT_NAME_REGEX = /^on./;
@@ -1638,7 +1781,7 @@ var validateProperty$1 = function () {};
 
     var lowerCasedName = name.toLowerCase();
     if (lowerCasedName === 'onfocusin' || lowerCasedName === 'onfocusout') {
-      warning(false, 'React uses onFocus and onBlur instead of onFocusIn and onFocusOut. ' + 'All React events are normalized to bubble, so onFocusIn and onFocusOut ' + 'are not needed/supported by React.');
+      warning$1(false, 'React uses onFocus and onBlur instead of onFocusIn and onFocusOut. ' + 'All React events are normalized to bubble, so onFocusIn and onFocusOut ' + 'are not needed/supported by React.');
       warnedProperties$1[name] = true;
       return true;
     }
@@ -1650,12 +1793,12 @@ var validateProperty$1 = function () {};
       }
       var registrationName = possibleRegistrationNames.hasOwnProperty(lowerCasedName) ? possibleRegistrationNames[lowerCasedName] : null;
       if (registrationName != null) {
-        warning(false, 'Invalid event handler property `%s`. Did you mean `%s`?%s', name, registrationName, getStackAddendum$3());
+        warning$1(false, 'Invalid event handler property `%s`. Did you mean `%s`?%s', name, registrationName, ReactDebugCurrentFrame$3.getStackAddendum());
         warnedProperties$1[name] = true;
         return true;
       }
       if (EVENT_NAME_REGEX.test(name)) {
-        warning(false, 'Unknown event handler property `%s`. It will be ignored.%s', name, getStackAddendum$3());
+        warning$1(false, 'Unknown event handler property `%s`. It will be ignored.%s', name, ReactDebugCurrentFrame$3.getStackAddendum());
         warnedProperties$1[name] = true;
         return true;
       }
@@ -1664,7 +1807,7 @@ var validateProperty$1 = function () {};
       // So we can't tell if the event name is correct for sure, but we can filter
       // out known bad ones like `onclick`. We can't suggest a specific replacement though.
       if (INVALID_EVENT_NAME_REGEX.test(name)) {
-        warning(false, 'Invalid event handler property `%s`. ' + 'React events use the camelCase naming convention, for example `onClick`.%s', name, getStackAddendum$3());
+        warning$1(false, 'Invalid event handler property `%s`. ' + 'React events use the camelCase naming convention, for example `onClick`.%s', name, ReactDebugCurrentFrame$3.getStackAddendum());
       }
       warnedProperties$1[name] = true;
       return true;
@@ -1676,25 +1819,25 @@ var validateProperty$1 = function () {};
     }
 
     if (lowerCasedName === 'innerhtml') {
-      warning(false, 'Directly setting property `innerHTML` is not permitted. ' + 'For more information, lookup documentation on `dangerouslySetInnerHTML`.');
+      warning$1(false, 'Directly setting property `innerHTML` is not permitted. ' + 'For more information, lookup documentation on `dangerouslySetInnerHTML`.');
       warnedProperties$1[name] = true;
       return true;
     }
 
     if (lowerCasedName === 'aria') {
-      warning(false, 'The `aria` attribute is reserved for future use in React. ' + 'Pass individual `aria-` attributes instead.');
+      warning$1(false, 'The `aria` attribute is reserved for future use in React. ' + 'Pass individual `aria-` attributes instead.');
       warnedProperties$1[name] = true;
       return true;
     }
 
     if (lowerCasedName === 'is' && value !== null && value !== undefined && typeof value !== 'string') {
-      warning(false, 'Received a `%s` for a string attribute `is`. If this is expected, cast ' + 'the value to a string.%s', typeof value, getStackAddendum$3());
+      warning$1(false, 'Received a `%s` for a string attribute `is`. If this is expected, cast ' + 'the value to a string.%s', typeof value, ReactDebugCurrentFrame$3.getStackAddendum());
       warnedProperties$1[name] = true;
       return true;
     }
 
     if (typeof value === 'number' && isNaN(value)) {
-      warning(false, 'Received NaN for the `%s` attribute. If this is expected, cast ' + 'the value to a string.%s', name, getStackAddendum$3());
+      warning$1(false, 'Received NaN for the `%s` attribute. If this is expected, cast ' + 'the value to a string.%s', name, ReactDebugCurrentFrame$3.getStackAddendum());
       warnedProperties$1[name] = true;
       return true;
     }
@@ -1706,23 +1849,23 @@ var validateProperty$1 = function () {};
     if (possibleStandardNames.hasOwnProperty(lowerCasedName)) {
       var standardName = possibleStandardNames[lowerCasedName];
       if (standardName !== name) {
-        warning(false, 'Invalid DOM property `%s`. Did you mean `%s`?%s', name, standardName, getStackAddendum$3());
+        warning$1(false, 'Invalid DOM property `%s`. Did you mean `%s`?%s', name, standardName, ReactDebugCurrentFrame$3.getStackAddendum());
         warnedProperties$1[name] = true;
         return true;
       }
     } else if (!isReserved && name !== lowerCasedName) {
       // Unknown attributes should have lowercase casing since that's how they
       // will be cased anyway with server rendering.
-      warning(false, 'React does not recognize the `%s` prop on a DOM element. If you ' + 'intentionally want it to appear in the DOM as a custom ' + 'attribute, spell it as lowercase `%s` instead. ' + 'If you accidentally passed it from a parent component, remove ' + 'it from the DOM element.%s', name, lowerCasedName, getStackAddendum$3());
+      warning$1(false, 'React does not recognize the `%s` prop on a DOM element. If you ' + 'intentionally want it to appear in the DOM as a custom ' + 'attribute, spell it as lowercase `%s` instead. ' + 'If you accidentally passed it from a parent component, remove ' + 'it from the DOM element.%s', name, lowerCasedName, ReactDebugCurrentFrame$3.getStackAddendum());
       warnedProperties$1[name] = true;
       return true;
     }
 
     if (typeof value === 'boolean' && shouldRemoveAttributeWithWarning(name, value, propertyInfo, false)) {
       if (value) {
-        warning(false, 'Received `%s` for a non-boolean attribute `%s`.\n\n' + 'If you want to write it to the DOM, pass a string instead: ' + '%s="%s" or %s={value.toString()}.%s', value, name, name, value, name, getStackAddendum$3());
+        warning$1(false, 'Received `%s` for a non-boolean attribute `%s`.\n\n' + 'If you want to write it to the DOM, pass a string instead: ' + '%s="%s" or %s={value.toString()}.%s', value, name, name, value, name, ReactDebugCurrentFrame$3.getStackAddendum());
       } else {
-        warning(false, 'Received `%s` for a non-boolean attribute `%s`.\n\n' + 'If you want to write it to the DOM, pass a string instead: ' + '%s="%s" or %s={value.toString()}.\n\n' + 'If you used to conditionally omit it with %s={condition && value}, ' + 'pass %s={condition ? value : undefined} instead.%s', value, name, name, value, name, name, name, getStackAddendum$3());
+        warning$1(false, 'Received `%s` for a non-boolean attribute `%s`.\n\n' + 'If you want to write it to the DOM, pass a string instead: ' + '%s="%s" or %s={value.toString()}.\n\n' + 'If you used to conditionally omit it with %s={condition && value}, ' + 'pass %s={condition ? value : undefined} instead.%s', value, name, name, value, name, name, name, ReactDebugCurrentFrame$3.getStackAddendum());
       }
       warnedProperties$1[name] = true;
       return true;
@@ -1757,9 +1900,9 @@ var warnUnknownProperties = function (type, props, canUseEventSystem) {
     return '`' + prop + '`';
   }).join(', ');
   if (unknownProps.length === 1) {
-    warning(false, 'Invalid value for prop %s on <%s> tag. Either remove it from the element, ' + 'or pass a string or number value to keep it in the DOM. ' + 'For details, see https://fb.me/react-attribute-behavior%s', unknownPropString, type, getStackAddendum$3());
+    warning$1(false, 'Invalid value for prop %s on <%s> tag. Either remove it from the element, ' + 'or pass a string or number value to keep it in the DOM. ' + 'For details, see https://fb.me/react-attribute-behavior%s', unknownPropString, type, ReactDebugCurrentFrame$3.getStackAddendum());
   } else if (unknownProps.length > 1) {
-    warning(false, 'Invalid values for props %s on <%s> tag. Either remove them from the element, ' + 'or pass a string or number value to keep them in the DOM. ' + 'For details, see https://fb.me/react-attribute-behavior%s', unknownPropString, type, getStackAddendum$3());
+    warning$1(false, 'Invalid values for props %s on <%s> tag. Either remove them from the element, ' + 'or pass a string or number value to keep them in the DOM. ' + 'For details, see https://fb.me/react-attribute-behavior%s', unknownPropString, type, ReactDebugCurrentFrame$3.getStackAddendum());
   }
 };
 
@@ -1776,18 +1919,29 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var toArray = React.Children.toArray;
 
-var currentDebugStack = void 0;
-var currentDebugElementStack = void 0;
+// This is only used in DEV.
+// Each entry is `this.stack` from a currently executing renderer instance.
+// (There may be more than one because ReactDOMServer is reentrant).
+// Each stack is an array of frames which may contain nested stacks of elements.
+var currentDebugStacks = [];
 
-var getStackAddendum = emptyFunction.thatReturns('');
-var describeStackFrame = emptyFunction.thatReturns('');
+var ReactDebugCurrentFrame = void 0;
+var prevGetCurrentStackImpl = null;
+var getCurrentServerStackImpl = function () {
+  return '';
+};
+var describeStackFrame = function (element) {
+  return '';
+};
 
 var validatePropertiesInDevelopment = function (type, props) {};
-var setCurrentDebugStack = function (stack) {};
+var pushCurrentDebugStack = function (stack) {};
 var pushElementToDebugStack = function (element) {};
-var resetCurrentDebugStack = function () {};
+var popCurrentDebugStack = function () {};
 
 {
+  ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
+
   validatePropertiesInDevelopment = function (type, props) {
     validateProperties(type, props);
     validateProperties$1(type, props);
@@ -1802,34 +1956,55 @@ var resetCurrentDebugStack = function () {};
     return describeComponentFrame(name, source, ownerName);
   };
 
-  currentDebugStack = null;
-  currentDebugElementStack = null;
-  setCurrentDebugStack = function (stack) {
-    var frame = stack[stack.length - 1];
-    currentDebugElementStack = frame.debugElementStack;
-    // We are about to enter a new composite stack, reset the array.
-    currentDebugElementStack.length = 0;
-    currentDebugStack = stack;
-    ReactDebugCurrentFrame.getCurrentStack = getStackAddendum;
-  };
-  pushElementToDebugStack = function (element) {
-    if (currentDebugElementStack !== null) {
-      currentDebugElementStack.push(element);
+  pushCurrentDebugStack = function (stack) {
+    currentDebugStacks.push(stack);
+
+    if (currentDebugStacks.length === 1) {
+      // We are entering a server renderer.
+      // Remember the previous (e.g. client) global stack implementation.
+      prevGetCurrentStackImpl = ReactDebugCurrentFrame.getCurrentStack;
+      ReactDebugCurrentFrame.getCurrentStack = getCurrentServerStackImpl;
     }
   };
-  resetCurrentDebugStack = function () {
-    currentDebugElementStack = null;
-    currentDebugStack = null;
-    ReactDebugCurrentFrame.getCurrentStack = null;
+
+  pushElementToDebugStack = function (element) {
+    // For the innermost executing ReactDOMServer call,
+    var stack = currentDebugStacks[currentDebugStacks.length - 1];
+    // Take the innermost executing frame (e.g. <Foo>),
+    var frame = stack[stack.length - 1];
+    // and record that it has one more element associated with it.
+    frame.debugElementStack.push(element);
+    // We only need this because we tail-optimize single-element
+    // children and directly handle them in an inner loop instead of
+    // creating separate frames for them.
   };
-  getStackAddendum = function () {
-    if (currentDebugStack === null) {
+
+  popCurrentDebugStack = function () {
+    currentDebugStacks.pop();
+
+    if (currentDebugStacks.length === 0) {
+      // We are exiting the server renderer.
+      // Restore the previous (e.g. client) global stack implementation.
+      ReactDebugCurrentFrame.getCurrentStack = prevGetCurrentStackImpl;
+      prevGetCurrentStackImpl = null;
+    }
+  };
+
+  getCurrentServerStackImpl = function () {
+    if (currentDebugStacks.length === 0) {
+      // Nothing is currently rendering.
       return '';
     }
+    // ReactDOMServer is reentrant so there may be multiple calls at the same time.
+    // Take the frames from the innermost call which is the last in the array.
+    var frames = currentDebugStacks[currentDebugStacks.length - 1];
     var stack = '';
-    var debugStack = currentDebugStack;
-    for (var i = debugStack.length - 1; i >= 0; i--) {
-      var frame = debugStack[i];
+    // Go through every frame in the stack from the innermost one.
+    for (var i = frames.length - 1; i >= 0; i--) {
+      var frame = frames[i];
+      // Every frame might have more than one debug element stack entry associated with it.
+      // This is because single-child nesting doesn't create materialized frames.
+      // Instead it would push them through `pushElementToDebugStack()`.
       var _debugElementStack = frame.debugElementStack;
       for (var ii = _debugElementStack.length - 1; ii >= 0; ii--) {
         stack += describeStackFrame(_debugElementStack[ii]);
@@ -1856,10 +2031,6 @@ var newlineEatingTags = {
   textarea: true
 };
 
-function getComponentName(type) {
-  return typeof type === 'string' ? type : typeof type === 'function' ? type.displayName || type.name : null;
-}
-
 // We accept any tag to be rendered but since this gets injected into arbitrary
 // HTML, we want to make sure that it's a safe tag.
 // http://www.w3.org/TR/REC-xml/#NT-Name
@@ -1872,9 +2043,15 @@ function validateDangerousTag(tag) {
   }
 }
 
-var processStyleName = memoizeStringOnly(function (styleName) {
-  return hyphenateStyleName(styleName);
-});
+var styleNameCache = {};
+var processStyleName = function (styleName) {
+  if (styleNameCache.hasOwnProperty(styleName)) {
+    return styleNameCache[styleName];
+  }
+  var result = hyphenateStyleName(styleName);
+  styleNameCache[styleName] = result;
+  return result;
+};
 
 function createMarkupForStyles(styles) {
   var serialized = '';
@@ -1887,7 +2064,7 @@ function createMarkupForStyles(styles) {
     var styleValue = styles[styleName];
     {
       if (!isCustomProperty) {
-        warnValidStyle$1(styleName, styleValue, getStackAddendum);
+        warnValidStyle$1(styleName, styleValue, getCurrentServerStackImpl);
       }
     }
     if (styleValue != null) {
@@ -1909,7 +2086,7 @@ function warnNoop(publicInstance, callerName) {
       return;
     }
 
-    warning(false, '%s(...): Can only update a mounting component. ' + 'This usually means you called %s() outside componentWillMount() on the server. ' + 'This is a no-op.\n\nPlease check the code for the %s component.', callerName, callerName, componentName);
+    warning$1(false, '%s(...): Can only update a mounting component. ' + 'This usually means you called %s() outside componentWillMount() on the server. ' + 'This is a no-op.\n\nPlease check the code for the %s component.', callerName, callerName, componentName);
     didWarnAboutNoopUpdateForComponent[warningKey] = true;
   }
 }
@@ -1950,6 +2127,9 @@ function flattenTopLevelChildren(children) {
 }
 
 function flattenOptionChildren(children) {
+  if (children === undefined || children === null) {
+    return children;
+  }
   var content = '';
   // Flatten children and warn if they aren't strings or numbers;
   // invalid types are ignored.
@@ -1963,12 +2143,17 @@ function flattenOptionChildren(children) {
       {
         if (!didWarnInvalidOptionChildren) {
           didWarnInvalidOptionChildren = true;
-          warning(false, 'Only strings and numbers are supported as <option> children.');
+          warning$1(false, 'Only strings and numbers are supported as <option> children.');
         }
       }
     }
   });
   return content;
+}
+
+var emptyObject = {};
+{
+  Object.freeze(emptyObject);
 }
 
 function maskContext(type, context) {
@@ -1985,7 +2170,7 @@ function maskContext(type, context) {
 
 function checkContextTypes(typeSpecs, values, location) {
   {
-    checkPropTypes(typeSpecs, values, location, 'Component', getStackAddendum);
+    checkPropTypes(typeSpecs, values, location, 'Component', getCurrentServerStackImpl);
   }
 }
 
@@ -2104,7 +2289,7 @@ function resolve(child, context) {
           if (inst.state === null || inst.state === undefined) {
             var componentName = getComponentName(Component) || 'Unknown';
             if (!didWarnAboutUninitializedState[componentName]) {
-              warning(false, '%s: Did not properly initialize state during construction. ' + 'Expected state to be an object, but it was %s.', componentName, inst.state === null ? 'null' : 'undefined');
+              warning$1(false, '%s: Did not properly initialize state during construction. ' + 'Expected state to be an object, but it was %s.', componentName, inst.state === null ? 'null' : 'undefined');
               didWarnAboutUninitializedState[componentName] = true;
             }
           }
@@ -2116,7 +2301,7 @@ function resolve(child, context) {
           if (partialState === undefined) {
             var _componentName = getComponentName(Component) || 'Unknown';
             if (!didWarnAboutUndefinedDerivedState[_componentName]) {
-              warning(false, '%s.getDerivedStateFromProps(): A valid state object (or null) must be returned. ' + 'You have returned undefined.', _componentName);
+              warning$1(false, '%s.getDerivedStateFromProps(): A valid state object (or null) must be returned. ' + 'You have returned undefined.', _componentName);
               didWarnAboutUndefinedDerivedState[_componentName] = true;
             }
           }
@@ -2132,7 +2317,7 @@ function resolve(child, context) {
           var _componentName2 = getComponentName(Component) || 'Unknown';
 
           if (!didWarnAboutBadClass[_componentName2]) {
-            warning(false, "The <%s /> component appears to have a render method, but doesn't extend React.Component. " + 'This is likely to cause errors. Change %s to extend React.Component instead.', _componentName2, _componentName2);
+            warning$1(false, "The <%s /> component appears to have a render method, but doesn't extend React.Component. " + 'This is likely to cause errors. Change %s to extend React.Component instead.', _componentName2, _componentName2);
             didWarnAboutBadClass[_componentName2] = true;
           }
         }
@@ -2226,7 +2411,7 @@ function resolve(child, context) {
           !(contextKey in childContextTypes) ? invariant(false, '%s.getChildContext(): key "%s" is not defined in childContextTypes.', getComponentName(Component) || 'Unknown', contextKey) : void 0;
         }
       } else {
-        warning(false, '%s.getChildContext(): childContextTypes must be defined in order to ' + 'use getChildContext().', getComponentName(Component) || 'Unknown');
+        warning$1(false, '%s.getChildContext(): childContextTypes must be defined in order to ' + 'use getChildContext().', getComponentName(Component) || 'Unknown');
       }
     }
     if (childContext) {
@@ -2237,6 +2422,8 @@ function resolve(child, context) {
 }
 
 var ReactDOMServerRenderer = function () {
+  // DEV-only
+
   function ReactDOMServerRenderer(children, makeStaticMarkup) {
     _classCallCheck(this, ReactDOMServerRenderer);
 
@@ -2262,33 +2449,65 @@ var ReactDOMServerRenderer = function () {
     this.makeStaticMarkup = makeStaticMarkup;
 
     // Context (new API)
-    this.providerStack = []; // Stack of provider objects
-    this.providerIndex = -1;
+    this.contextIndex = -1;
+    this.contextStack = [];
+    this.contextValueStack = [];
+    {
+      this.contextProviderStack = [];
+    }
   }
+
+  /**
+   * Note: We use just two stacks regardless of how many context providers you have.
+   * Providers are always popped in the reverse order to how they were pushed
+   * so we always know on the way down which provider you'll encounter next on the way up.
+   * On the way down, we push the current provider, and its context value *before*
+   * we mutated it, onto the stacks. Therefore, on the way up, we always know which
+   * provider needs to be "restored" to which value.
+   * https://github.com/facebook/react/pull/12985#issuecomment-396301248
+   */
+
   // TODO: type this more strictly:
 
 
   ReactDOMServerRenderer.prototype.pushProvider = function pushProvider(provider) {
-    this.providerIndex += 1;
-    this.providerStack[this.providerIndex] = provider;
+    var index = ++this.contextIndex;
     var context = provider.type._context;
+    var previousValue = context._currentValue;
+
+    // Remember which value to restore this context to on our way up.
+    this.contextStack[index] = context;
+    this.contextValueStack[index] = previousValue;
+    {
+      // Only used for push/pop mismatch warnings.
+      this.contextProviderStack[index] = provider;
+    }
+
+    // Mutate the current value.
     context._currentValue = provider.props.value;
   };
 
   ReactDOMServerRenderer.prototype.popProvider = function popProvider(provider) {
+    var index = this.contextIndex;
     {
-      !(this.providerIndex > -1 && provider === this.providerStack[this.providerIndex]) ? warning(false, 'Unexpected pop.') : void 0;
+      !(index > -1 && provider === this.contextProviderStack[index]) ? warning$1(false, 'Unexpected pop.') : void 0;
     }
-    this.providerStack[this.providerIndex] = null;
-    this.providerIndex -= 1;
-    var context = provider.type._context;
-    if (this.providerIndex < 0) {
-      context._currentValue = context._defaultValue;
-    } else {
-      // We assume this type is correct because of the index check above.
-      var previousProvider = this.providerStack[this.providerIndex];
-      context._currentValue = previousProvider.props.value;
+
+    var context = this.contextStack[index];
+    var previousValue = this.contextValueStack[index];
+
+    // "Hide" these null assignments from Flow by using `any`
+    // because conceptually they are deletions--as long as we
+    // promise to never access values beyond `this.contextIndex`.
+    this.contextStack[index] = null;
+    this.contextValueStack[index] = null;
+    {
+      this.contextProviderStack[index] = null;
     }
+    this.contextIndex--;
+
+    // Restore to the previous value we stored as we were walking down.
+    context._currentValue = previousValue;
   };
 
   ReactDOMServerRenderer.prototype.read = function read(bytes) {
@@ -2320,12 +2539,15 @@ var ReactDOMServerRenderer = function () {
       }
       var child = frame.children[frame.childIndex++];
       {
-        setCurrentDebugStack(this.stack);
-      }
-      out += this.render(child, frame.context, frame.domNamespace);
-      {
-        // TODO: Handle reentrant server render calls. This doesn't.
-        resetCurrentDebugStack();
+        pushCurrentDebugStack(this.stack);
+        // We're starting work on this frame, so reset its inner stack.
+        frame.debugElementStack.length = 0;
+        try {
+          // Be careful! Make sure this matches the PROD path below.
+          out += this.render(child, frame.context, frame.domNamespace);
+        } finally {
+          popCurrentDebugStack();
+        }
       }
     }
     return out;
@@ -2506,7 +2728,7 @@ var ReactDOMServerRenderer = function () {
       if (namespace === Namespaces.html) {
         // Should this check be gated by parent namespace? Not sure we want to
         // allow <SVG> or <mATH>.
-        !(tag === element.type) ? warning(false, '<%s /> is using incorrect casing. ' + 'Use PascalCase for React components, ' + 'or lowercase for HTML elements.', element.type) : void 0;
+        !(tag === element.type) ? warning$1(false, '<%s /> is using incorrect casing. ' + 'Use PascalCase for React components, ' + 'or lowercase for HTML elements.', element.type) : void 0;
       }
     }
 
@@ -2515,14 +2737,14 @@ var ReactDOMServerRenderer = function () {
     var props = element.props;
     if (tag === 'input') {
       {
-        ReactControlledValuePropTypes.checkPropTypes('input', props, getStackAddendum);
+        ReactControlledValuePropTypes.checkPropTypes('input', props, getCurrentServerStackImpl);
 
         if (props.checked !== undefined && props.defaultChecked !== undefined && !didWarnDefaultChecked) {
-          warning(false, '%s contains an input of type %s with both checked and defaultChecked props. ' + 'Input elements must be either controlled or uncontrolled ' + '(specify either the checked prop, or the defaultChecked prop, but not ' + 'both). Decide between using a controlled or uncontrolled input ' + 'element and remove one of these props. More info: ' + 'https://fb.me/react-controlled-components', 'A component', props.type);
+          warning$1(false, '%s contains an input of type %s with both checked and defaultChecked props. ' + 'Input elements must be either controlled or uncontrolled ' + '(specify either the checked prop, or the defaultChecked prop, but not ' + 'both). Decide between using a controlled or uncontrolled input ' + 'element and remove one of these props. More info: ' + 'https://fb.me/react-controlled-components', 'A component', props.type);
           didWarnDefaultChecked = true;
         }
         if (props.value !== undefined && props.defaultValue !== undefined && !didWarnDefaultInputValue) {
-          warning(false, '%s contains an input of type %s with both value and defaultValue props. ' + 'Input elements must be either controlled or uncontrolled ' + '(specify either the value prop, or the defaultValue prop, but not ' + 'both). Decide between using a controlled or uncontrolled input ' + 'element and remove one of these props. More info: ' + 'https://fb.me/react-controlled-components', 'A component', props.type);
+          warning$1(false, '%s contains an input of type %s with both value and defaultValue props. ' + 'Input elements must be either controlled or uncontrolled ' + '(specify either the value prop, or the defaultValue prop, but not ' + 'both). Decide between using a controlled or uncontrolled input ' + 'element and remove one of these props. More info: ' + 'https://fb.me/react-controlled-components', 'A component', props.type);
           didWarnDefaultInputValue = true;
         }
       }
@@ -2537,9 +2759,9 @@ var ReactDOMServerRenderer = function () {
       });
     } else if (tag === 'textarea') {
       {
-        ReactControlledValuePropTypes.checkPropTypes('textarea', props, getStackAddendum);
+        ReactControlledValuePropTypes.checkPropTypes('textarea', props, getCurrentServerStackImpl);
         if (props.value !== undefined && props.defaultValue !== undefined && !didWarnDefaultTextareaValue) {
-          warning(false, 'Textarea elements must be either controlled or uncontrolled ' + '(specify either the value prop, or the defaultValue prop, but not ' + 'both). Decide between using a controlled or uncontrolled textarea ' + 'and remove one of these props. More info: ' + 'https://fb.me/react-controlled-components');
+          warning$1(false, 'Textarea elements must be either controlled or uncontrolled ' + '(specify either the value prop, or the defaultValue prop, but not ' + 'both). Decide between using a controlled or uncontrolled textarea ' + 'and remove one of these props. More info: ' + 'https://fb.me/react-controlled-components');
           didWarnDefaultTextareaValue = true;
         }
       }
@@ -2551,7 +2773,7 @@ var ReactDOMServerRenderer = function () {
         var textareaChildren = props.children;
         if (textareaChildren != null) {
           {
-            warning(false, 'Use the `defaultValue` or `value` props instead of setting ' + 'children on <textarea>.');
+            warning$1(false, 'Use the `defaultValue` or `value` props instead of setting ' + 'children on <textarea>.');
           }
           !(defaultValue == null) ? invariant(false, 'If you supply `defaultValue` on a <textarea>, do not pass children.') : void 0;
           if (Array.isArray(textareaChildren)) {
@@ -2573,7 +2795,7 @@ var ReactDOMServerRenderer = function () {
       });
     } else if (tag === 'select') {
       {
-        ReactControlledValuePropTypes.checkPropTypes('select', props, getStackAddendum);
+        ReactControlledValuePropTypes.checkPropTypes('select', props, getCurrentServerStackImpl);
 
         for (var i = 0; i < valuePropNames.length; i++) {
           var propName = valuePropNames[i];
@@ -2582,16 +2804,16 @@ var ReactDOMServerRenderer = function () {
           }
           var isArray = Array.isArray(props[propName]);
           if (props.multiple && !isArray) {
-            warning(false, 'The `%s` prop supplied to <select> must be an array if ' + '`multiple` is true.%s', propName, '' // getDeclarationErrorAddendum(),
+            warning$1(false, 'The `%s` prop supplied to <select> must be an array if ' + '`multiple` is true.%s', propName, '' // getDeclarationErrorAddendum(),
             );
           } else if (!props.multiple && isArray) {
-            warning(false, 'The `%s` prop supplied to <select> must be a scalar ' + 'value if `multiple` is false.%s', propName, '' // getDeclarationErrorAddendum(),
+            warning$1(false, 'The `%s` prop supplied to <select> must be a scalar ' + 'value if `multiple` is false.%s', propName, '' // getDeclarationErrorAddendum(),
             );
           }
         }
 
         if (props.value !== undefined && props.defaultValue !== undefined && !didWarnDefaultSelectValue) {
-          warning(false, 'Select elements must be either controlled or uncontrolled ' + '(specify either the value prop, or the defaultValue prop, but not ' + 'both). Decide between using a controlled or uncontrolled select ' + 'element and remove one of these props. More info: ' + 'https://fb.me/react-controlled-components');
+          warning$1(false, 'Select elements must be either controlled or uncontrolled ' + '(specify either the value prop, or the defaultValue prop, but not ' + 'both). Decide between using a controlled or uncontrolled select ' + 'element and remove one of these props. More info: ' + 'https://fb.me/react-controlled-components');
           didWarnDefaultSelectValue = true;
         }
       }
@@ -2637,7 +2859,7 @@ var ReactDOMServerRenderer = function () {
       validatePropertiesInDevelopment(tag, props);
     }
 
-    assertValidProps(tag, props, getStackAddendum);
+    assertValidProps(tag, props, getCurrentServerStackImpl);
 
     var out = createOpenTagMarkup(element.type, tag, props, namespace, this.makeStaticMarkup, this.stack.length === 1);
     var footer = '';
